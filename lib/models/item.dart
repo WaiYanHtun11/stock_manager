@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Item {
   final String id;
   final String name;
-  final int count;
+  int count;
   final String image;
   final String timeStamp; // Store timeStamp as String
   final String? status; // Make status nullable
@@ -19,7 +19,7 @@ class Item {
 
   // Method to convert Firestore DocumentSnapshot to Item object
   factory Item.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data()!;
+    Map data = doc.data()! as Map<String,dynamic>;
     return Item(
       id: doc.id,
       name: data['name'] ?? '',

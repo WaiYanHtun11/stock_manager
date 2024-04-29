@@ -4,7 +4,7 @@ class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Create operation
-  Future<void> create(String collection, Map<String, dynamic> data) async {
+  Future<void> createItem(String collection, Map<String, dynamic> data) async {
     try {
       await _firestore.collection(collection).add(data);
     } catch (e) {
@@ -12,8 +12,23 @@ class FirestoreService {
     }
   }
 
+    // Read operation with count filter
+  Future<List<Map<String, dynamic>>> getItemsLessThan(String collection, int countThreshold) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection(collection)
+          .where('count', isLessThan: countThreshold)
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      print('Error reading documents: $e');
+      return [];
+    }
+  }
+
   // Read operation with timeStamp filter
-  Future<List<Map<String, dynamic>>> read(String collection, String isoTimestamp) async {
+  Future<List<Map<String, dynamic>>> getItems(String collection, String isoTimestamp) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot;
       
@@ -29,11 +44,12 @@ class FirestoreService {
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
       print('Error reading documents: $e');
+      return [];
     }
   }
 
   // Update operation
-  Future<void> update(String collection, String id, Map<String, dynamic> data) async {
+  Future<void> updateItem(String collection, String id, Map<String, dynamic> data) async {
     try {
       await _firestore.collection(collection).doc(id).update(data);
     } catch (e) {
@@ -42,7 +58,7 @@ class FirestoreService {
   }
 
   // Delete operation
-  Future<void> delete(String collection, String id) async {
+  Future<void> deleteItem(String collection, String id) async {
     try {
       await _firestore.collection(collection).doc(id).delete();
     } catch (e) {

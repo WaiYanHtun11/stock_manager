@@ -1,8 +1,9 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:stock_manager/models/item.dart';
 
-
-class DatabaseHelper {
+class SqfliteService {
   static Database? _database;
-  static const String dbName = 'items.db';
+  static const String dbName = 'stock_manager.db';
 
   Future<Database> get database async {
     if (_database != null) {
@@ -20,7 +21,7 @@ class DatabaseHelper {
       version: 1,
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE InStock(
+          CREATE TABLE stocks(
             id TEXT PRIMARY KEY,
             name TEXT,
             count INTEGER,
@@ -30,31 +31,34 @@ class DatabaseHelper {
         ''');
 
         await db.execute('''
-          CREATE TABLE Sell(
+          CREATE TABLE sales(
             id TEXT PRIMARY KEY,
             name TEXT,
             count INTEGER,
             image TEXT,
+            status TEXT,
             timeStamp TEXT
           )
         ''');
 
         await db.execute('''
-          CREATE TABLE Buy(
+          CREATE TABLE buys(
             id TEXT PRIMARY KEY,
             name TEXT,
             count INTEGER,
             image TEXT,
+            status TEXT,
             timeStamp TEXT
           )
         ''');
 
         await db.execute('''
-          CREATE TABLE Report(
+          CREATE TABLE reports(
             id TEXT PRIMARY KEY,
             name TEXT,
             count INTEGER,
             image TEXT,
+            status TEXT,
             timeStamp TEXT
           )
         ''');
@@ -71,9 +75,18 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Item>> getAllItems(String table) async {
+  Future<List<Item>> getAllItems(String table, {String? searchTerm}) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(table);
+    late List<Map<String, dynamic>> maps;
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      maps = await db.query(
+        table,
+        where: 'name LIKE ?',
+        whereArgs: ['%$searchTerm%'],
+      );
+    } else {
+      maps = await db.query(table);
+    }
     return List.generate(maps.length, (i) {
       return Item.fromMap(maps[i]);
     });

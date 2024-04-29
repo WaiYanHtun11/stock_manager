@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stock_manager/models/item.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -13,14 +14,14 @@ class FirestoreService {
   }
 
     // Read operation with count filter
-  Future<List<Map<String, dynamic>>> getItemsLessThan(String collection, int countThreshold) async {
+  Future<List<Item>> getItemsLessThan(String collection, int countThreshold) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
           .collection(collection)
           .where('count', isLessThan: countThreshold)
           .get();
 
-      return snapshot.docs.map((doc) => doc.data()).toList();
+      return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error reading documents: $e');
       return [];
@@ -28,7 +29,7 @@ class FirestoreService {
   }
 
   // Read operation with timeStamp filter
-  Future<List<Map<String, dynamic>>> getItems(String collection, String isoTimestamp) async {
+  Future<List<Item>> getItems(String collection, String isoTimestamp) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot;
       
@@ -41,7 +42,7 @@ class FirestoreService {
             .get();
       }
 
-      return snapshot.docs.map((doc) => doc.data()).toList();
+      return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error reading documents: $e');
       return [];

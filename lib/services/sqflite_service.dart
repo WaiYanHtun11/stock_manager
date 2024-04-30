@@ -42,7 +42,7 @@ class SqfliteService {
         ''');
 
         await db.execute('''
-          CREATE TABLE buys(
+          CREATE TABLE refills(
             id TEXT PRIMARY KEY,
             name TEXT,
             count INTEGER,
@@ -109,5 +109,32 @@ class SqfliteService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<void> clearTable(String table) async {
+    final db = await database;
+    await db.delete(table);
+  }
+
+  Future<List<Item>> fetchPaginatedItems(
+      String table, int limit, int offset) async {
+    final db = await database;
+    // Fetch data with pagination
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+        'SELECT * FROM $table ORDER BY timeStamp DESC LIMIT $limit OFFSET $offset');
+
+    // Convert List<Map<String, dynamic>> to List<Item>
+    return List.generate(maps.length, (i) {
+      return Item.fromMap(maps[i]);
+    });
+  }
+
+  Future<int> getTotalRowCount(String table) async {
+    final db = await database;
+    // Get the total count of rows in the table
+    List<Map<String, dynamic>> result =
+        await db.rawQuery('SELECT COUNT(*) FROM $table');
+    int? count = Sqflite.firstIntValue(result);
+    return count ?? 0;
   }
 }

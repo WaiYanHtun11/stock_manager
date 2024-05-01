@@ -51,6 +51,8 @@ class StocksProvider extends ChangeNotifier {
   }
 
     Future<void> addRefill(Item item) async {
+    // Sync local data with the firestore before adding
+    await _databaseService.syncStocks();
     // Add item to the firebase and sqflite
     await _databaseService.addStock(item);
     // Update the in memory list    
@@ -59,6 +61,8 @@ class StocksProvider extends ChangeNotifier {
   }
 
    Future<void> updateStock(Item item) async {
+    // Sync local data with the firestore before updating
+    await _databaseService.syncStocks();
     // Update item in firebase and sqflite
     await _databaseService.updateStock(item);
     // Update the in memory list

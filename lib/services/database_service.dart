@@ -28,6 +28,31 @@ class DatabaseService {
     prefs.setString('reports', DateTime.now().toIso8601String());
   }
 
+  Future<void> syncStocks() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final stocksTimeStamp = prefs.getString('stocks') ?? '';
+
+    // Update the local stocks to sync with firestore
+    final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
+    for (Item stock in stocks) {
+      _sqfliteService.insertItem('stocks', stock);
+    }
+    prefs.setString('stocks', DateTime.now().toIso8601String());
+  }
+
+  Future<void> syncReports() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final reportsTimeStamp = prefs.getString('reports') ?? '';
+
+    // Update the local reports to sync with the firestore
+    final transactions =
+        await _firestoreService.getItems('transactions', reportsTimeStamp);
+    for (Item transaction in transactions) {
+      _sqfliteService.insertItem('reports', transaction);
+    }
+    prefs.setString('reports', DateTime.now().toIso8601String());
+  }
+
   // Add stock to both Firestore and SQLite
   Future<void> addStock(Item item) async {
     await _firestoreService.createItem('stocks', item.toMap());

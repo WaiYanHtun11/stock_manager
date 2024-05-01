@@ -51,6 +51,8 @@ class ReportsProvider extends ChangeNotifier {
   }
 
    Future<void> updateReport(Item stock, Item updatedReport , int difference) async {
+    // Sync the local data with the firestore before updating
+    await _databaseService.syncReports();
     // Update item in firebase and sqflite
     await _databaseService.updateItem(updatedReport, 'reports');
     // Update the in stocks

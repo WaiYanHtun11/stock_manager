@@ -38,7 +38,7 @@ class StocksProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error fetching stocks: $e');
+      debugPrint('Error fetching stocks: $e');
       _isLoading = false;
       notifyListeners();
     }
@@ -50,7 +50,7 @@ class StocksProvider extends ChangeNotifier {
     }
   }
 
-    Future<void> addRefill(Item item) async {
+    Future<void> addStock(Item item) async {
     // Sync local data with the firestore before adding
     await _databaseService.syncStocks();
     // Add item to the firebase and sqflite

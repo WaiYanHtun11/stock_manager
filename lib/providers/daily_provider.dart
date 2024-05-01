@@ -11,14 +11,11 @@ class DailyManager extends ChangeNotifier {
   List<Item> refills = [];
 
   DailyManager() {
-    _initSharedPreferences();
+    syncDailyData();
   }
 
-  Future<void> _initSharedPreferences() async {
+  Future<void> syncDailyData() async {
     _prefs = await SharedPreferences.getInstance();
-  }
-
-  Future<void> syncData() async {
     // Check if it's a new day
     final lastSyncDate = _prefs.getString('lastSyncDate');
     final currentDate = DateTime.now().toIso8601String().substring(0, 10);

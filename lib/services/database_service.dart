@@ -111,7 +111,7 @@ class DatabaseService {
     return await _firestoreService.getItems(collection, isoTimestamp);
   }
 
-  Future<List<Item>> fetchItemsLessThan() async {
+  Future<List<Item>> fetchItemsLessThan(int i) async {
     return await _firestoreService.getItemsLessThan('stocks', 12);
   }
 

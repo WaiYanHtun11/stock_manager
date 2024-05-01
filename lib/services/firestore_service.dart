@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
 
 class FirestoreService {
@@ -9,7 +10,7 @@ class FirestoreService {
     try {
       await _firestore.collection(collection).add(data);
     } catch (e) {
-      print('Error creating document: $e');
+      debugPrint('Error creating document: $e');
     }
   }
 
@@ -23,7 +24,7 @@ class FirestoreService {
 
       return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error reading documents: $e');
+      debugPrint('Error reading documents: $e');
       return [];
     }
   }
@@ -44,7 +45,7 @@ class FirestoreService {
 
       return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error reading documents: $e');
+      debugPrint('Error reading documents: $e');
       return [];
     }
   }
@@ -54,7 +55,7 @@ class FirestoreService {
     try {
       await _firestore.collection(collection).doc(id).update(data);
     } catch (e) {
-      print('Error updating document: $e');   
+      debugPrint('Error updating document: $e');   
     }
   }
 
@@ -63,7 +64,7 @@ class FirestoreService {
     try {
       await _firestore.collection(collection).doc(id).delete();
     } catch (e) {
-      print('Error deleting document: $e');  
+      debugPrint('Error deleting document: $e');  
     }
   }
 }

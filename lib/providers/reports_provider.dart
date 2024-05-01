@@ -4,20 +4,20 @@ import 'package:stock_manager/services/database_service.dart';
 
 class ReportsProvider extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
-  late List<Item> _reports;
+  late Map<String, List<Item>> _reports; 
   late int _currentPage;
   late int _totalPages;
   late bool _isLoading;
 
   ReportsProvider() {
-    _reports = [];
+    _reports = {};
     _currentPage = 0;
     _totalPages = 0;
     _isLoading = false;
     fetchReports();
   }
 
-  List<Item> get reports => _reports;
+  Map<String, List<Item>> get reports => _reports;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   bool get isLoading => _isLoading;
@@ -27,9 +27,33 @@ class ReportsProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final reports = await _databaseService.fetchPaginatedItems('reports', limit, page * limit);
-      _reports.addAll(reports);
-      
+      final reports = await _databaseService.fetchPaginatedItems(
+          'reports', limit, page * limit);
+
+      // Classify reports by date and store in a map
+      Map<String, List<Item>> classifiedReports = {};
+      for (var report in reports) {
+        String dateString = report.timeStamp;
+        if (!classifiedReports.containsKey(dateString)) {
+          classifiedReports[dateString] = [];
+        }
+        classifiedReports[dateString]!.add(report);
+      }
+
+      // Merge new reports with existing ones
+      _reports.forEach((date, existingReports) {
+        if (classifiedReports.containsKey(date)) {
+          existingReports.addAll(classifiedReports[date]!);
+        }
+      });
+
+      // Add any new dates and reports to _reports
+      classifiedReports.forEach((date, newReports) {
+        if (!_reports.containsKey(date)) {
+          _reports[date] = newReports;
+        }
+      });
+
       // Assuming you have a method in DatabaseService to get total number of reports
       final totalReports = await _databaseService.getTotalRowCount('reports');
       _totalPages = (totalReports / limit).ceil();
@@ -38,7 +62,7 @@ class ReportsProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error fetching reports: $e');
+      debugPrint('Error fetching reports: $e');
       _isLoading = false;
       notifyListeners();
     }
@@ -50,18 +74,29 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
-   Future<void> updateReport(Item stock, Item updatedReport , int difference) async {
-    // Sync the local data with the firestore before updating
-    await _databaseService.syncReports();
-    // Update item in firebase and sqflite
-    await _databaseService.updateItem(updatedReport, 'reports');
-    // Update the in stocks
-    await _databaseService.updateTransaction(stock, updatedReport, difference);
-    // Upate the in memory list
-    final index = reports.indexWhere((refill) => refill.id == updatedReport.id);
-    if (index != -1) {
-      reports[index] = updatedReport;
+  Future<void> updateReport(
+      Item stock, Item updatedReport, int difference) async {
+    try {
+      // Sync the local data with the firestore before updating
+      await _databaseService.syncReports();
+      // Update item in firebase and sqflite
+      await _databaseService.updateItem(updatedReport, 'reports');
+      // Update the in stocks
+      await _databaseService.updateTransaction(
+          stock, updatedReport, difference);
+
+      // Update the in memory list
+      _reports.forEach((date, reportsList) {
+        final index =
+            reportsList.indexWhere((report) => report.id == updatedReport.id);
+        if (index != -1) {
+          reportsList[index] = updatedReport;
+        }
+      });
+
       notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating report: $e');
     }
   }
 }

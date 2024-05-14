@@ -7,6 +7,7 @@ class Item {
   final String image;
   final String timeStamp; // Store timeStamp as String
   final String? status; // Make status nullable
+  final String? location; // Make location nullable
 
   Item({
     required this.id,
@@ -14,37 +15,60 @@ class Item {
     required this.count,
     required this.image,
     required this.timeStamp, // Store timeStamp as String
-    this.status,
+    this.status, // Include status field
+    this.location, // Include location field
   });
 
-  // Method to convert Firestore DocumentSnapshot to Item object
-  factory Item.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data()! as Map<String,dynamic>;
+  // Method to convert Firestore DocumentSnapshot to Item object for stocks
+  factory Item.fromStocksFirestore(DocumentSnapshot doc) {
+    Map data = doc.data()! as Map<String, dynamic>;
     return Item(
       id: doc.id,
       name: data['name'] ?? '',
       count: data['count'] ?? 0,
       image: data['image'] ?? '',
       timeStamp: data['timeStamp'] ?? '',
-      status: data['status'], // Include status field if provided
+      location: data['location'], // Retrieve location from Firestore
     );
   }
 
-  // Method to convert Item object to a Map
-  Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {
+  // Method to convert Firestore DocumentSnapshot to Item object for transactions
+  factory Item.fromTransactionsFirestore(DocumentSnapshot doc) {
+    Map data = doc.data()! as Map<String, dynamic>;
+    return Item(
+      id: doc.id,
+      name: data['name'] ?? '',
+      count: data['count'] ?? 0,
+      image: data['image'] ?? '',
+      timeStamp: data['timeStamp'] ?? '',
+      status: data['status'], // Retrieve status from Firestore
+    );
+  }
+
+  // Method to convert Item object to a Map for stocks
+  Map<String, dynamic> toStocksMap() {
+    return {
       'id': id,
       'name': name,
       'count': count,
       'image': image,
-      'timeStamp': timeStamp, // Store timeStamp as String
+      'timeStamp': timeStamp,
+      // No status field for stocks
+      'location': location, // Include location field
     };
+  }
 
-    if (status != null) {
-      map['status'] = status; // Include status field only if not null
-    }
-
-    return map;
+  // Method to convert Item object to a Map for transactions
+  Map<String, dynamic> toTransactionsMap() {
+    return {
+      'id': id,
+      'name': name,
+      'count': count,
+      'image': image,
+      'timeStamp': timeStamp,
+      // No location field for transactions
+      'status': status, // Include status field
+    };
   }
 
   // Method to convert a Map object to Item
@@ -56,6 +80,7 @@ class Item {
       image: map['image'],
       timeStamp: map['timeStamp'], // Store timeStamp as String
       status: map['status'],
+      location: map['location'],
     );
   }
 }

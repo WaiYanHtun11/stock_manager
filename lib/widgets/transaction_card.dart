@@ -1,37 +1,37 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:stock_manager/models/item.dart';
+import 'package:stock_manager/utils/format_date.dart';
+import 'package:stock_manager/widgets/update_count_dialog.dart';
+
 class TransactionCard extends StatelessWidget {
-  const TransactionCard({super.key,required this.isRefill});
+  const TransactionCard(
+      {super.key, required this.isRefill, required this.item});
   final bool isRefill;
+  final Item item;
 
   @override
   Widget build(BuildContext context) {
-    final Random random = Random();
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
         elevation: 10,
         surfaceTintColor: Colors.white,
         child: ListTile(
+          onTap: () async {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return const ItemCountDialog(currentCount: 18);
+              },
+            );
+          },
           leading: Image.asset('assets/images/stock.png'),
-          title: const Text('Stock Item...'),
-          subtitle: RichText(
-            text: TextSpan(
-                children: [
-                  TextSpan(text: '${isRefill ? 'Refilled' : 'Removed'} at ',style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: isRefill ? Colors.green : Colors.deepOrangeAccent
-                  )),
-                  const TextSpan(text: 'May 3,2024')
-                ]
-            ),
-          ),
+          title: Text(item.name),
+          subtitle: Text(formatDate(item.timeStamp.toString())),
           trailing: CircleAvatar(
             backgroundColor: isRefill ? Colors.green : Colors.deepOrangeAccent,
             foregroundColor: Colors.white,
-            child: Text('${random.nextInt(100)}'),
+            child: Text(item.count.toString()),
           ),
         ),
       ),

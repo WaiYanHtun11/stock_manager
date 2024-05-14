@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/services/database_service.dart';
 
-class StocksProvider extends ChangeNotifier {
+class StocksManager extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
   late List<Item> _stocks;
   late int _currentPage;
   late int _totalPages;
   late bool _isLoading;
 
-  StocksProvider() {
+  StocksManager() {
     _stocks = [];
     _currentPage = 0;
     _totalPages = 0;
@@ -27,9 +27,12 @@ class StocksProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final stocks = await _databaseService.fetchPaginatedItems('stocks', limit, page * limit);
+      final stocks = await _databaseService.fetchPaginatedItems(
+          'stocks', limit, page * limit);
       _stocks.addAll(stocks);
-      
+
+      print(stocks.length);
+
       // Assuming you have a method in DatabaseService to get total number of stocks
       final totalStocks = await _databaseService.getTotalRowCount('stocks');
       _totalPages = (totalStocks / limit).ceil();
@@ -50,17 +53,17 @@ class StocksProvider extends ChangeNotifier {
     }
   }
 
-    Future<void> addStock(Item item) async {
+  Future<void> addStock(Item item) async {
     // Sync local data with the firestore before adding
     await _databaseService.syncStocks();
     // Add item to the firebase and sqflite
     await _databaseService.addStock(item);
-    // Update the in memory list    
+    // Update the in memory list
     stocks.add(item);
     notifyListeners();
   }
 
-   Future<void> updateStock(Item item) async {
+  Future<void> updateStock(Item item) async {
     // Sync local data with the firestore before updating
     await _databaseService.syncStocks();
     // Update item in firebase and sqflite
@@ -69,7 +72,33 @@ class StocksProvider extends ChangeNotifier {
     final index = stocks.indexWhere((stock) => stock.id == item.id);
     if (index != -1) {
       stocks[index] = item;
-      notifyListeners();
     }
+    notifyListeners();
+  }
+
+  Future<void> deleteStock(Item item) async {
+    try {
+      // Sync local data with Firestore before deleting
+      await _databaseService.syncStocks();
+
+      // Delete item from Firebase and Sqflite
+      await _databaseService.deleteStock(item.id);
+
+      // Remove item from the in-memory list
+      _stocks.removeWhere((stock) => stock.id == item.id);
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting stock: $e');
+    }
+  }
+
+  void updateMemoryList(Item item) {
+    // Update the in memory list
+    final index = stocks.indexWhere((stock) => stock.id == item.id);
+    if (index != -1) {
+      stocks[index] = item;
+    }
+    notifyListeners();
   }
 }

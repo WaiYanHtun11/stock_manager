@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/services/database_service.dart';
 
-class ReportsProvider extends ChangeNotifier {
+class ReportsManager extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
-  late Map<String, List<Item>> _reports; 
+  late List<Map<String, List<Item>>> _reportsList;
   late int _currentPage;
   late int _totalPages;
   late bool _isLoading;
 
-  ReportsProvider() {
-    _reports = {};
+  ReportsManager() {
+    _reportsList = [];
     _currentPage = 0;
     _totalPages = 0;
     _isLoading = false;
     fetchReports();
   }
 
-  Map<String, List<Item>> get reports => _reports;
+  List<Map<String, List<Item>>> get reportsList => _reportsList;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   bool get isLoading => _isLoading;
@@ -30,29 +30,29 @@ class ReportsProvider extends ChangeNotifier {
       final reports = await _databaseService.fetchPaginatedItems(
           'reports', limit, page * limit);
 
-      // Classify reports by date and store in a map
-      Map<String, List<Item>> classifiedReports = {};
       for (var report in reports) {
-        String dateString = report.timeStamp;
-        if (!classifiedReports.containsKey(dateString)) {
-          classifiedReports[dateString] = [];
+        // Extracting only the date from the timestamp
+        String dateString =
+            DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
+
+        // Check if the date already exists in _reportsList
+        bool dateExists = false;
+        for (var reportsMap in _reportsList) {
+          if (reportsMap.containsKey(dateString)) {
+            // If the date exists, append the report to the existing list
+            reportsMap[dateString]!.add(report);
+            dateExists = true;
+            break;
+          }
         }
-        classifiedReports[dateString]!.add(report);
+
+        // If the date doesn't exist, create a new map and add the report
+        if (!dateExists) {
+          _reportsList.add({
+            dateString: [report]
+          });
+        }
       }
-
-      // Merge new reports with existing ones
-      _reports.forEach((date, existingReports) {
-        if (classifiedReports.containsKey(date)) {
-          existingReports.addAll(classifiedReports[date]!);
-        }
-      });
-
-      // Add any new dates and reports to _reports
-      classifiedReports.forEach((date, newReports) {
-        if (!_reports.containsKey(date)) {
-          _reports[date] = newReports;
-        }
-      });
 
       // Assuming you have a method in DatabaseService to get total number of reports
       final totalReports = await _databaseService.getTotalRowCount('reports');
@@ -74,6 +74,35 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
+  void addReport(Item report) {
+    // Extract date from the report
+    String dateString =
+        DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
+
+    // Check if the date already exists in _reportsList
+    bool dateExists = false;
+    for (var reportsMap in _reportsList) {
+      if (reportsMap.containsKey(dateString)) {
+        // If the date exists, append the report to the existing list
+        reportsMap[dateString]!.add(report);
+        dateExists = true;
+        break;
+      }
+    }
+
+    // If the date doesn't exist, create a new map and add the report
+    if (!dateExists) {
+      _reportsList.add({
+        dateString: [report]
+      });
+    }
+
+    // Notify listeners about the change
+    notifyListeners();
+  }
+
+  // Other methods remain unchanged...
+
   Future<void> updateReport(
       Item stock, Item updatedReport, int difference) async {
     try {
@@ -82,21 +111,36 @@ class ReportsProvider extends ChangeNotifier {
       // Update item in firebase and sqflite
       await _databaseService.updateItem(updatedReport, 'reports');
       // Update the in stocks
-      await _databaseService.updateTransaction(
-          stock, updatedReport, difference);
+      await _databaseService.updateTransaction(updatedReport, difference);
 
       // Update the in memory list
-      _reports.forEach((date, reportsList) {
-        final index =
-            reportsList.indexWhere((report) => report.id == updatedReport.id);
-        if (index != -1) {
-          reportsList[index] = updatedReport;
-        }
+      _reportsList.forEach((reportsMap) {
+        reportsMap.forEach((date, reportsList) {
+          final index =
+              reportsList.indexWhere((report) => report.id == updatedReport.id);
+          if (index != -1) {
+            reportsList[index] = updatedReport;
+          }
+        });
       });
 
       notifyListeners();
     } catch (e) {
       debugPrint('Error updating report: $e');
     }
+  }
+
+  void updateMemoryList(Item updatedReport) {
+    // Update the in memory list
+    for (var reportsMap in _reportsList) {
+      reportsMap.forEach((date, reportsList) {
+        final index =
+            reportsList.indexWhere((report) => report.id == updatedReport.id);
+        if (index != -1) {
+          reportsList[index] = updatedReport;
+        }
+      });
+    }
+    notifyListeners();
   }
 }

@@ -8,21 +8,32 @@ class FirestoreService {
   // Create operation
   Future<void> createItem(String collection, Map<String, dynamic> data) async {
     try {
-      await _firestore.collection(collection).add(data);
+      DocumentReference docRef =
+          _firestore.collection(collection).doc(data['id']);
+      await docRef.set(data);
     } catch (e) {
       debugPrint('Error creating document: $e');
     }
   }
 
-    // Read operation with count filter
-  Future<List<Item>> getItemsLessThan(String collection, int countThreshold) async {
+  // Read operation with count filter
+  Future<List<Item>> getItemsLessThan(
+      String collection, int countThreshold) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
           .collection(collection)
           .where('count', isLessThan: countThreshold)
           .get();
 
-      return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
+      if (collection == 'stocks') {
+        return snapshot.docs
+            .map((doc) => Item.fromStocksFirestore(doc))
+            .toList();
+      } else {
+        return snapshot.docs
+            .map((doc) => Item.fromTransactionsFirestore(doc))
+            .toList();
+      }
     } catch (e) {
       debugPrint('Error reading documents: $e');
       return [];
@@ -33,7 +44,7 @@ class FirestoreService {
   Future<List<Item>> getItems(String collection, String isoTimestamp) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot;
-      
+
       if (isoTimestamp.isEmpty) {
         snapshot = await _firestore.collection(collection).get();
       } else {
@@ -42,8 +53,15 @@ class FirestoreService {
             .where('timeStamp', isGreaterThan: isoTimestamp)
             .get();
       }
-
-      return snapshot.docs.map((doc) => Item.fromFirestore(doc)).toList();
+      if (collection == 'stocks') {
+        return snapshot.docs
+            .map((doc) => Item.fromStocksFirestore(doc))
+            .toList();
+      } else {
+        return snapshot.docs
+            .map((doc) => Item.fromTransactionsFirestore(doc))
+            .toList();
+      }
     } catch (e) {
       debugPrint('Error reading documents: $e');
       return [];
@@ -51,11 +69,12 @@ class FirestoreService {
   }
 
   // Update operation
-  Future<void> updateItem(String collection, String id, Map<String, dynamic> data) async {
+  Future<void> updateItem(
+      String collection, String id, Map<String, dynamic> data) async {
     try {
       await _firestore.collection(collection).doc(id).update(data);
     } catch (e) {
-      debugPrint('Error updating document: $e');   
+      debugPrint('Error updating document: $e');
     }
   }
 
@@ -64,7 +83,7 @@ class FirestoreService {
     try {
       await _firestore.collection(collection).doc(id).delete();
     } catch (e) {
-      debugPrint('Error deleting document: $e');  
+      debugPrint('Error deleting document: $e');
     }
   }
 }

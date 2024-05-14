@@ -47,36 +47,54 @@ class DailyManager extends ChangeNotifier {
     await _databaseService.addItem(refill, 'refills');
     // Update the in stocks
     await _databaseService.addTransaction(stock, refill);
-    // Update the in memory list    
+    // Update the in memory list
     refills.add(refill);
     notifyListeners();
   }
 
   // Difference : new item - old item
-  Future<void> updateSale(Item stock, Item updatedSale , int difference) async {
+  Future<void> updateSale(Item stock, Item updatedSale, int difference) async {
     // Update item in firebase and sqflite
     await _databaseService.updateItem(updatedSale, 'sales');
     // Update the in stocks
-    await _databaseService.updateTransaction(stock, updatedSale, difference);
+    await _databaseService.updateTransaction(updatedSale, difference);
     // Upate the in memory list
     final index = sales.indexWhere((sale) => sale.id == updatedSale.id);
     if (index != -1) {
       sales[index] = updatedSale;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
-  Future<void> updateRefill(Item stock, Item updatedRefill , int difference) async {
+  Future<void> updateRefill(
+      Item stock, Item updatedRefill, int difference) async {
     // Update item in firebase and sqflite
     await _databaseService.updateItem(updatedRefill, 'refills');
     // Update the in stocks
-    await _databaseService.updateTransaction(stock, updatedRefill, difference);
+    await _databaseService.updateTransaction(updatedRefill, difference);
     // Upate the in memory list
     final index = refills.indexWhere((refill) => refill.id == updatedRefill.id);
     if (index != -1) {
       refills[index] = updatedRefill;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
+  void updateRefillMemoryList(Item updatedRefill) {
+    // Upate the in memory list
+    final index = refills.indexWhere((refill) => refill.id == updatedRefill.id);
+    if (index != -1) {
+      refills[index] = updatedRefill;
+    }
+    notifyListeners();
+  }
+
+  void updateSaleMemoryList(Item updatedSale) {
+    // Upate the in memory list
+    final index = sales.indexWhere((sale) => sale.id == updatedSale.id);
+    if (index != -1) {
+      sales[index] = updatedSale;
+    }
+    notifyListeners();
+  }
 }

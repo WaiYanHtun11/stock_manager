@@ -9,9 +9,10 @@ class DatabaseService {
 
   Future<void> syncData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final stocksTimeStamp = prefs.getString('stocks') ?? '';
     final reportsTimeStamp = prefs.getString('reports') ?? '';
-
+    print(stocksTimeStamp);
     // Update the local stocks to sync with firestore
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
     for (Item stock in stocks) {
@@ -34,10 +35,13 @@ class DatabaseService {
 
     // Update the local stocks to sync with firestore
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
+
     for (Item stock in stocks) {
       _sqfliteService.insertItem('stocks', stock);
     }
+
     prefs.setString('stocks', DateTime.now().toIso8601String());
+    print(stocksTimeStamp);
   }
 
   Future<void> syncReports() async {
@@ -55,25 +59,39 @@ class DatabaseService {
 
   // Add stock to both Firestore and SQLite
   Future<void> addStock(Item item) async {
-    await _firestoreService.createItem('stocks', item.toMap());
+    await _firestoreService.createItem('stocks', item.toStocksMap());
     await _sqfliteService.insertItem('stocks', item);
   }
 
   // Update stock in both Firestore and SQLite
   Future<void> updateStock(Item item) async {
-    await _firestoreService.updateItem('stocks', item.id, item.toMap());
+    await _firestoreService.updateItem('stocks', item.id, item.toStocksMap());
     await _sqfliteService.updateItem('stocks', item);
+  }
+
+  // Update count in both Firestore and SQLite
+  Future<void> updateStockCount(String id, int count) async {
+    await _firestoreService.updateItem('stocks', id,
+        {'count': count, 'timeStamp': DateTime.now().toIso8601String()});
+    await _sqfliteService.updateCount('stocks', id, count);
+  }
+
+  Future<void> updateTransactionCount(
+      String table, String id, int count) async {
+    await _sqfliteService.updateCount(table, id, count);
   }
 
   // Add item to both Firestore and SQLite
   Future<void> addItem(Item item, String table) async {
-    await _firestoreService.createItem('transactions', item.toMap());
+    await _firestoreService.createItem(
+        'transactions', item.toTransactionsMap());
     await _sqfliteService.insertItem(table, item);
   }
 
   // Update item in both Firestore and SQLite
   Future<void> updateItem(Item item, String table) async {
-    await _firestoreService.updateItem('transactions', item.id, item.toMap());
+    await _firestoreService.updateItem(
+        'transactions', item.id, item.toTransactionsMap());
     await _sqfliteService.updateItem(table, item);
   }
 
@@ -88,22 +106,27 @@ class DatabaseService {
       addItem(item, 'refills');
     }
     stock.count = count;
-    updateStock(stock);
+    // Update only the count
+    updateStockCount(stock.id, count);
   }
 
   // Update transaction and stock in both Firestore and SQLite
-  Future<void> updateTransaction(Item stock, Item item, int difference) async {
+  Future<void> updateTransaction(Item item, int difference) async {
     // Difference : new - old
+    String id = item.id;
     int count = 0;
+    int inStock = await _sqfliteService.getCountOfStockById(item.id);
+    await _firestoreService.updateItem('transactions', id,
+        {'count': count, 'timeStamp': DateTime.now().toIso8601String()});
     if (item.status == 'sale') {
-      count = stock.count - difference;
-      updateItem(item, 'sales');
+      count = inStock - difference;
+      updateTransactionCount('sales', id, item.count);
     } else {
-      count = stock.count + difference;
-      updateItem(item, 'refills');
+      count = inStock + difference;
+      updateTransactionCount('refills', id, item.count);
     }
-    stock.count = count;
-    updateStock(item);
+    updateTransactionCount('reports', id, item.count);
+    updateStockCount(item.id, count);
   }
 
   Future<List<Item>> fetchFromFirebase(
@@ -131,5 +154,14 @@ class DatabaseService {
 
   Future<void> clearTransactions(String table) async {
     await _sqfliteService.clearTable(table);
+  }
+
+  Future<bool> isOutofStock(String table) async {
+    return await _sqfliteService.isTableEmpty(table);
+  }
+
+  Future<void> deleteStock(String id) async {
+    await _firestoreService.deleteItem('stocks', id);
+    await _sqfliteService.deleteItem('stocks', id);
   }
 }

@@ -54,6 +54,7 @@ class SqfliteService {
         count INTEGER,
         image TEXT,
         status TEXT,
+        sid TEXT,
         timeStamp TEXT
       )
     ''');
@@ -65,6 +66,7 @@ class SqfliteService {
         count INTEGER,
         image TEXT,
         status TEXT,
+        sid TEXT,
         timeStamp TEXT
       )
     ''');
@@ -76,6 +78,7 @@ class SqfliteService {
         count INTEGER,
         image TEXT,
         status TEXT,
+        sid TEXT,
         timeStamp TEXT
       )
     ''');
@@ -130,6 +133,21 @@ class SqfliteService {
       // If no result is found, return a default value, like -1 or 0
       return 0;
     }
+  }
+
+  Future<Item?> getStockById(String id) async {
+    final db = await getDatabase();
+
+    List<Map<String, dynamic>> result = await db.query(
+      'stocks',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      return Item.fromMap(result.first);
+    }
+    return null;
   }
 
   Future<void> updateCount(String table, String id, int count) async {

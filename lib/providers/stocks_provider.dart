@@ -23,6 +23,8 @@ class StocksManager extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> fetchStocks({int page = 0, int limit = 12}) async {
+    if (_isLoading || page > _totalPages) return;
+
     try {
       _isLoading = true;
       notifyListeners();
@@ -48,7 +50,7 @@ class StocksManager extends ChangeNotifier {
   }
 
   Future<void> loadMoreStocks() async {
-    if (_currentPage < _totalPages - 1) {
+    if (_currentPage < _totalPages - 1 && !_isLoading) {
       await fetchStocks(page: _currentPage + 1);
     }
   }
@@ -98,6 +100,7 @@ class StocksManager extends ChangeNotifier {
     final index = stocks.indexWhere((stock) => stock.id == item.id);
     if (index != -1) {
       stocks[index] = item;
+      print('update the memory list of the stock');
     }
     notifyListeners();
   }

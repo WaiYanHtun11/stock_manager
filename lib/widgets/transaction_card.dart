@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/utils/format_date.dart';
@@ -14,18 +15,40 @@ class TransactionCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 10,
         surfaceTintColor: Colors.white,
         child: ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           onTap: () async {
             showDialog(
               context: context,
+              barrierDismissible: false,
               builder: (BuildContext context) {
-                return const ItemCountDialog(currentCount: 18);
+                return ItemCountDialog(item: item);
               },
             );
           },
-          leading: Image.asset('assets/images/stock.png'),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: CachedNetworkImage(
+              imageUrl: item.image,
+              placeholder: (context, url) => Container(
+                  alignment: Alignment.center,
+                  color: Colors.grey.shade100,
+                  child: const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ))),
+              errorWidget: (context, url, error) =>
+                  Image.asset('assets/images/stock.png'),
+              width: 48.0,
+              height: 48.0,
+              fit: BoxFit.cover,
+            ),
+          ),
           title: Text(item.name),
           subtitle: Text(formatDate(item.timeStamp.toString())),
           trailing: CircleAvatar(

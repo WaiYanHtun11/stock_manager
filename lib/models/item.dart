@@ -6,6 +6,7 @@ class Item {
   int count;
   final String image;
   final String timeStamp; // Store timeStamp as String
+  final String? sid;
   final String? status; // Make status nullable
   final String? location; // Make location nullable
 
@@ -15,6 +16,7 @@ class Item {
     required this.count,
     required this.image,
     required this.timeStamp, // Store timeStamp as String
+    this.sid,
     this.status, // Include status field
     this.location, // Include location field
   });
@@ -36,13 +38,13 @@ class Item {
   factory Item.fromTransactionsFirestore(DocumentSnapshot doc) {
     Map data = doc.data()! as Map<String, dynamic>;
     return Item(
-      id: doc.id,
-      name: data['name'] ?? '',
-      count: data['count'] ?? 0,
-      image: data['image'] ?? '',
-      timeStamp: data['timeStamp'] ?? '',
-      status: data['status'], // Retrieve status from Firestore
-    );
+        id: doc.id,
+        name: data['name'] ?? '',
+        count: data['count'] ?? 0,
+        image: data['image'] ?? '',
+        timeStamp: data['timeStamp'] ?? '',
+        status: data['status'], // Retrieve status from Firestore
+        sid: data['sid']);
   }
 
   // Method to convert Item object to a Map for stocks
@@ -68,19 +70,20 @@ class Item {
       'timeStamp': timeStamp,
       // No location field for transactions
       'status': status, // Include status field
+      'sid': sid
     };
   }
 
   // Method to convert a Map object to Item
   factory Item.fromMap(Map<String, dynamic> map) {
     return Item(
-      id: map['id'],
-      name: map['name'],
-      count: map['count'],
-      image: map['image'],
-      timeStamp: map['timeStamp'], // Store timeStamp as String
-      status: map['status'],
-      location: map['location'],
-    );
+        id: map['id'],
+        name: map['name'],
+        count: map['count'],
+        image: map['image'],
+        timeStamp: map['timeStamp'], // Store timeStamp as String
+        status: map['status'],
+        location: map['location'],
+        sid: map['sid']);
   }
 }

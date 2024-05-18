@@ -34,30 +34,27 @@ class DailyManager extends ChangeNotifier {
 
   Future<void> addSale(Item stock, Item sale) async {
     // Add item to the firebase and sqflite
-    await _databaseService.addItem(sale, 'sales');
-    // Update the in stocks
     await _databaseService.addTransaction(stock, sale);
+
     // Update the in memory list
-    sales.add(sale);
+    sales.insert(0, sale);
     notifyListeners();
   }
 
   Future<void> addRefill(Item stock, Item refill) async {
     // Add item to the firebase and sqflite
-    await _databaseService.addItem(refill, 'refills');
-    // Update the in stocks
     await _databaseService.addTransaction(stock, refill);
     // Update the in memory list
-    refills.add(refill);
+    refills.insert(0, refill);
     notifyListeners();
   }
 
   // Difference : new item - old item
-  Future<void> updateSale(Item stock, Item updatedSale, int difference) async {
+  Future<void> updateSale(String sid, Item updatedSale, int difference) async {
     // Update item in firebase and sqflite
     await _databaseService.updateItem(updatedSale, 'sales');
     // Update the in stocks
-    await _databaseService.updateTransaction(updatedSale, difference);
+    await _databaseService.updateTransaction(sid, updatedSale, difference);
     // Upate the in memory list
     final index = sales.indexWhere((sale) => sale.id == updatedSale.id);
     if (index != -1) {
@@ -67,11 +64,11 @@ class DailyManager extends ChangeNotifier {
   }
 
   Future<void> updateRefill(
-      Item stock, Item updatedRefill, int difference) async {
+      String sid, Item updatedRefill, int difference) async {
     // Update item in firebase and sqflite
     await _databaseService.updateItem(updatedRefill, 'refills');
     // Update the in stocks
-    await _databaseService.updateTransaction(updatedRefill, difference);
+    await _databaseService.updateTransaction(sid, updatedRefill, difference);
     // Upate the in memory list
     final index = refills.indexWhere((refill) => refill.id == updatedRefill.id);
     if (index != -1) {

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/models/item.dart';
@@ -62,22 +63,46 @@ class AdminStockCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 10,
         surfaceTintColor: Colors.white,
         child: ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
           onTap: () {
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => StockItemDetail(
-                        name: item.name,
-                        count: item.count.toString(),
-                        location: item.location!)));
+                          item: item,
+                        )));
           },
-          leading: Image.asset('assets/images/stock.png'),
-          title: const Text('Stock Item...'),
-          subtitle: const Text('5 Items at Container 3................'),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: CachedNetworkImage(
+              imageUrl: item.image,
+              placeholder: (context, url) => Container(
+                  alignment: Alignment.center,
+                  color: Colors.grey.shade100,
+                  child: const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ))),
+              errorWidget: (context, url, error) =>
+                  Image.asset('assets/images/stock.png'),
+              width: 56.0,
+              height: 56.0,
+              fit: BoxFit.cover,
+            ),
+          ),
+          title: Text(item.name),
+          subtitle: Text(
+            '${item.count} items at ${item.location}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: PopupMenuButton<String>(
             itemBuilder: (BuildContext context) {
               return getPopupItems(context, item);

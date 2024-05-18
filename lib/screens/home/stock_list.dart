@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:stock_manager/models/constant.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/providers/auth_provider.dart';
 import 'package:stock_manager/providers/stocks_provider.dart';
@@ -17,10 +16,11 @@ class StockList extends StatefulWidget {
 }
 
 class _StockListState extends State<StockList> {
-  late Future<List<Item>> _itemsFuture;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _showSuggestions = false;
+  final ScrollController _scrollController = ScrollController();
+  late Future<List<Item>> _itemsFuture;
 
   SqfliteService db = SqfliteService();
 
@@ -29,7 +29,8 @@ class _StockListState extends State<StockList> {
     super.initState();
     _itemsFuture = db.getAllItems('stocks');
 
-    // Add listener to focus node
+    _scrollController.addListener(_onScroll);
+
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
         setState(() {
@@ -41,8 +42,22 @@ class _StockListState extends State<StockList> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _onScroll() async {
+    if (_scrollController.position.atEdge) {
+      if (_scrollController.position.pixels != 0) {
+        final stocksManager = context.read<StocksManager>();
+        if (!stocksManager.isLoading &&
+            stocksManager.currentPage < stocksManager.totalPages) {
+          await stocksManager.loadMoreStocks();
+        }
+      }
+    }
   }
 
   @override
@@ -51,34 +66,39 @@ class _StockListState extends State<StockList> {
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: Stack(
           children: [
             Consumer<StocksManager>(builder: (context, stocksManager, _) {
               final items = stocksManager.stocks;
-              if (stocksManager.isLoading) {
+              if (stocksManager.isLoading && items.isEmpty) {
                 return const Center(
-                  child: Text('Loading...'),
+                  child: CircularProgressIndicator(),
                 );
               }
-              if (stocksManager.stocks.isEmpty) {
+              if (items.isEmpty) {
                 return const Center(
                   child: Text('No Items Yet'),
                 );
               }
-              return authManager.role == 'admin'
-                  ? ListView.builder(
-                      padding: const EdgeInsets.only(top: 72),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        return AdminStockCard(item: items[index]);
-                      })
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 72),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        return StaffStockCard(item: items[index]);
-                      });
+              return ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(top: 72),
+                itemCount: items.length + (stocksManager.isLoading ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == items.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return authManager.role == 'admin'
+                      ? AdminStockCard(item: items[index])
+                      : StaffStockCard(item: items[index]);
+                },
+              );
             }),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -154,9 +174,7 @@ class _StockListState extends State<StockList> {
                               leading: Container(
                                 decoration: BoxDecoration(
                                     image: DecorationImage(
-                                        image: NetworkImage(
-                                          items[index].image,
-                                        ),
+                                        image: NetworkImage(items[index].image),
                                         fit: BoxFit.cover),
                                     borderRadius: BorderRadius.circular(4)),
                                 width: 48,
@@ -181,19 +199,6 @@ class _StockListState extends State<StockList> {
                   },
                 ),
               ),
-            if (authManager.role == 'admin')
-              Positioned(
-                right: 8,
-                bottom: -8,
-                child: FloatingActionButton(
-                  backgroundColor: Colors.deepOrangeAccent,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    goToScreen(context, const AddNewStock());
-                  },
-                  child: const Icon(Icons.add),
-                ),
-              ),
           ],
         ),
       ),
@@ -203,7 +208,10 @@ class _StockListState extends State<StockList> {
               backgroundColor: Colors.deepOrangeAccent,
               foregroundColor: Colors.white,
               onPressed: () {
-                goToScreen(context, const AddNewStock());
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddNewStock()),
+                );
               },
               child: const Icon(Icons.add),
             ),

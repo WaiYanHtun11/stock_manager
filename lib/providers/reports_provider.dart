@@ -22,31 +22,78 @@ class ReportsManager extends ChangeNotifier {
   int get totalPages => _totalPages;
   bool get isLoading => _isLoading;
 
+  //   Future<void> fetchReports({int page = 0, int limit = 12}) async {
+  //   try {
+  //     _isLoading = true;
+  //     notifyListeners();
+
+  //     final reports = await _databaseService.fetchPaginatedItems(
+  //         'reports', limit, page * limit);
+
+  //     for (var report in reports) {
+  //       // Extracting only the date from the timestamp
+  //       String dateString =
+  //           DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
+
+  //       // Check if the date already exists in _reportsList
+  //       bool dateExists = false;
+  //       for (var reportsMap in _reportsList) {
+  //         if (reportsMap.containsKey(dateString)) {
+  //           // If the date exists, append the report to the existing list
+  //           reportsMap[dateString]!.add(report);
+  //           dateExists = true;
+  //           break;
+  //         }
+  //       }
+
+  //       // If the date doesn't exist, create a new map and add the report
+  //       if (!dateExists) {
+  //         _reportsList.add({
+  //           dateString: [report]
+  //         });
+  //       }
+  //     }
+
+  //     // Assuming you have a method in DatabaseService to get total number of reports
+  //     final totalReports = await _databaseService.getTotalRowCount('reports');
+  //     _totalPages = (totalReports / limit).ceil();
+
+  //     _currentPage = page;
+  //     _isLoading = false;
+  //     notifyListeners();
+  //   } catch (e) {
+  //     debugPrint('Error fetching reports: $e');
+  //     _isLoading = false;
+  //     notifyListeners();
+  //   }
+  // }
+
   Future<void> fetchReports({int page = 0, int limit = 12}) async {
+    if (_isLoading || page > _totalPages) return;
+
     try {
       _isLoading = true;
       notifyListeners();
 
+      if (page != 0) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
       final reports = await _databaseService.fetchPaginatedItems(
           'reports', limit, page * limit);
 
       for (var report in reports) {
-        // Extracting only the date from the timestamp
         String dateString =
             DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
 
-        // Check if the date already exists in _reportsList
         bool dateExists = false;
         for (var reportsMap in _reportsList) {
           if (reportsMap.containsKey(dateString)) {
-            // If the date exists, append the report to the existing list
             reportsMap[dateString]!.add(report);
             dateExists = true;
             break;
           }
         }
 
-        // If the date doesn't exist, create a new map and add the report
         if (!dateExists) {
           _reportsList.add({
             dateString: [report]
@@ -54,7 +101,6 @@ class ReportsManager extends ChangeNotifier {
         }
       }
 
-      // Assuming you have a method in DatabaseService to get total number of reports
       final totalReports = await _databaseService.getTotalRowCount('reports');
       _totalPages = (totalReports / limit).ceil();
 
@@ -69,52 +115,40 @@ class ReportsManager extends ChangeNotifier {
   }
 
   Future<void> loadMoreReports() async {
-    if (_currentPage < _totalPages - 1) {
+    if (_currentPage < _totalPages - 1 && !_isLoading) {
       await fetchReports(page: _currentPage + 1);
     }
   }
 
   void addReport(Item report) {
-    // Extract date from the report
     String dateString =
         DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
 
-    // Check if the date already exists in _reportsList
     bool dateExists = false;
     for (var reportsMap in _reportsList) {
       if (reportsMap.containsKey(dateString)) {
-        // If the date exists, append the report to the existing list
-        reportsMap[dateString]!.add(report);
+        reportsMap[dateString]!.insert(0, report);
         dateExists = true;
         break;
       }
     }
 
-    // If the date doesn't exist, create a new map and add the report
     if (!dateExists) {
-      _reportsList.add({
+      _reportsList.insert(0, {
         dateString: [report]
       });
     }
 
-    // Notify listeners about the change
     notifyListeners();
   }
 
-  // Other methods remain unchanged...
-
   Future<void> updateReport(
-      Item stock, Item updatedReport, int difference) async {
+      String sid, Item updatedReport, int difference) async {
     try {
-      // Sync the local data with the firestore before updating
       await _databaseService.syncReports();
-      // Update item in firebase and sqflite
-      await _databaseService.updateItem(updatedReport, 'reports');
-      // Update the in stocks
-      await _databaseService.updateTransaction(updatedReport, difference);
+      await _databaseService.updateTransaction(sid, updatedReport, difference);
 
-      // Update the in memory list
-      _reportsList.forEach((reportsMap) {
+      for (var reportsMap in _reportsList) {
         reportsMap.forEach((date, reportsList) {
           final index =
               reportsList.indexWhere((report) => report.id == updatedReport.id);
@@ -122,7 +156,7 @@ class ReportsManager extends ChangeNotifier {
             reportsList[index] = updatedReport;
           }
         });
-      });
+      }
 
       notifyListeners();
     } catch (e) {
@@ -131,7 +165,6 @@ class ReportsManager extends ChangeNotifier {
   }
 
   void updateMemoryList(Item updatedReport) {
-    // Update the in memory list
     for (var reportsMap in _reportsList) {
       reportsMap.forEach((date, reportsList) {
         final index =

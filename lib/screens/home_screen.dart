@@ -2,12 +2,12 @@ import 'package:awesome_bottom_bar/awesome_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/providers/auth_provider.dart';
-import 'package:stock_manager/providers/out_of_stock.dart';
+import 'package:stock_manager/providers/out_of_stock_provider.dart';
 import 'package:stock_manager/screens/home/refill_list.dart';
 import 'package:stock_manager/screens/home/remove_list.dart';
 import 'package:stock_manager/screens/home/report_list.dart';
 import 'package:stock_manager/screens/home/stock_list.dart';
-import 'package:stock_manager/screens/home/out_of_stock_screen.dart';
+import 'package:stock_manager/screens/home/out_of_stock.dart';
 import 'package:stock_manager/services/database_service.dart';
 
 import '../icons/nav_icons_icons.dart';
@@ -73,15 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 Consumer<OutofStockManager>(
                     builder: (context, outofStockManager, _) {
-                  final isOutofStock = outofStockManager.isOutofStock;
                   return IconButton(
                     icon: Icon(
-                        isOutofStock
-                            ? Icons.notifications_active
-                            : Icons.notifications,
-                        color: isOutofStock
-                            ? Colors.deepOrangeAccent
-                            : Colors.blueGrey),
+                        outofStockManager.outofStocks.isEmpty
+                            ? Icons.notifications
+                            : Icons.notifications_active,
+                        color: outofStockManager.outofStocks.isEmpty
+                            ? Colors.blueGrey
+                            : Colors.deepOrangeAccent),
                     onPressed: () {
                       Navigator.push(
                           context,

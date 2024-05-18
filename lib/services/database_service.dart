@@ -71,9 +71,14 @@ class DatabaseService {
 
   // Update count in both Firestore and SQLite
   Future<void> updateStockCount(String id, int count) async {
-    await _firestoreService.updateItem('stocks', id,
-        {'count': count, 'timeStamp': DateTime.now().toIso8601String()});
-    await _sqfliteService.updateCount('stocks', id, count);
+    try {
+      await _firestoreService.updateItem('stocks', id,
+          {'count': count, 'timeStamp': DateTime.now().toIso8601String()});
+      await _sqfliteService.updateCount('stocks', id, count);
+    } catch (e) {
+      // Absorb the error
+      print('error occurs in updating count');
+    }
   }
 
   Future<void> updateTransactionCount(
@@ -86,6 +91,7 @@ class DatabaseService {
     await _firestoreService.createItem(
         'transactions', item.toTransactionsMap());
     await _sqfliteService.insertItem(table, item);
+    await _sqfliteService.insertItem('reports', item);
   }
 
   // Update item in both Firestore and SQLite
@@ -100,33 +106,36 @@ class DatabaseService {
     int count = 0;
     if (item.status == 'sale') {
       count = stock.count - item.count;
-      addItem(item, 'sales');
+      await addItem(item, 'sales');
     } else {
       count = stock.count + item.count;
-      addItem(item, 'refills');
+      await addItem(item, 'refills');
     }
     stock.count = count;
     // Update only the count
-    updateStockCount(stock.id, count);
+    await updateStockCount(stock.id, count);
   }
 
   // Update transaction and stock in both Firestore and SQLite
-  Future<void> updateTransaction(Item item, int difference) async {
+  Future<void> updateTransaction(String sid, Item item, int difference) async {
     // Difference : new - old
     String id = item.id;
     int count = 0;
-    int inStock = await _sqfliteService.getCountOfStockById(item.id);
+    int inStock = await _sqfliteService.getCountOfStockById(sid);
+    print('in stock : $inStock');
+    print('difference : $difference');
     await _firestoreService.updateItem('transactions', id,
-        {'count': count, 'timeStamp': DateTime.now().toIso8601String()});
+        {'count': item.count, 'timeStamp': DateTime.now().toIso8601String()});
     if (item.status == 'sale') {
       count = inStock - difference;
-      updateTransactionCount('sales', id, item.count);
+      await updateTransactionCount('sales', id, item.count);
     } else {
       count = inStock + difference;
-      updateTransactionCount('refills', id, item.count);
+      await updateTransactionCount('refills', id, item.count);
     }
-    updateTransactionCount('reports', id, item.count);
-    updateStockCount(item.id, count);
+    await updateTransactionCount('reports', id, item.count);
+    print('final count : $count');
+    await updateStockCount(sid, count);
   }
 
   Future<List<Item>> fetchFromFirebase(
@@ -150,6 +159,10 @@ class DatabaseService {
 
   Future<int> getTotalRowCount(String table) async {
     return await _sqfliteService.getTotalRowCount(table);
+  }
+
+  Future<Item?> getStockById(String id) async {
+    return await _sqfliteService.getStockById(id);
   }
 
   Future<void> clearTransactions(String table) async {

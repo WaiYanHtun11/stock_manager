@@ -1,11 +1,18 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:stock_manager/models/item.dart';
+import 'package:stock_manager/providers/daily_provider.dart';
+import 'package:stock_manager/providers/out_of_stock_provider.dart';
+import 'package:stock_manager/providers/reports_provider.dart';
+import 'package:stock_manager/providers/stocks_provider.dart';
 import 'package:stock_manager/services/sqflite_service.dart';
-import 'package:stock_manager/utils/format_date.dart';
+import 'package:uuid/uuid.dart';
 
 class AddTransaction extends StatefulWidget {
-  const AddTransaction({super.key});
+  final String status;
+  final Item? item;
+  const AddTransaction({super.key, required this.status, this.item});
 
   @override
   State<AddTransaction> createState() => _AddItemPageState();
@@ -27,6 +34,11 @@ class _AddItemPageState extends State<AddTransaction> {
   void initState() {
     super.initState();
     _itemsFuture = db.getAllItems('stocks');
+    if (widget.item != null) {
+      _selectedItem = widget.item;
+      _searchController.text = widget.item!.name;
+      _isFieldEnabled = false;
+    }
 
     _searchController.addListener(_validateInputs);
     _countController.addListener(_validateInputs);
@@ -55,18 +67,48 @@ class _AddItemPageState extends State<AddTransaction> {
 
     final itemCount = int.tryParse(_countController.text) ?? 0;
 
+    String id = const Uuid().v1();
+    Item item = Item(
+        id: id,
+        sid: _selectedItem!.id,
+        name: _selectedItem!.name,
+        count: itemCount,
+        image: _selectedItem!.image,
+        timeStamp: DateTime.now().toIso8601String(),
+        status: widget.status);
+
     if (_selectedItem != null && itemCount > 0) {
       // Save the transaction
-      await Future.delayed(const Duration(seconds: 2));
+      if (widget.status == 'sale') {
+        await Provider.of<DailyManager>(context, listen: false)
+            .addSale(_selectedItem!, item);
+      } else {
+        await Provider.of<DailyManager>(context, listen: false)
+            .addRefill(_selectedItem!, item);
+      }
 
       // Show the snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Transaction saved successfully!'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.fromLTRB(16, 0, 16, 96),
-        ),
-      );
+      if (mounted) {
+        if (widget.item != null) {
+          Provider.of<DailyManager>(context, listen: false)
+              .updateRefillMemoryList(item);
+        }
+        Provider.of<ReportsManager>(context, listen: false).addReport(item);
+        Provider.of<StocksManager>(context, listen: false)
+            .updateMemoryList(_selectedItem!);
+        await Provider.of<OutofStockManager>(context, listen: false)
+            .checkOutofStockAfterUpdate(_selectedItem!);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Transaction saved successfully!'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.fromLTRB(16, 0, 16, 96),
+            ),
+          );
+        }
+      }
 
       // Reset the state
       setState(() {
@@ -78,6 +120,16 @@ class _AddItemPageState extends State<AddTransaction> {
         _isSaving = false;
       });
     } else {
+      // Show the snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Transaction Failed!'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.fromLTRB(16, 0, 16, 96),
+          ),
+        );
+      }
       setState(() {
         _isSaving = false;
       });
@@ -104,20 +156,28 @@ class _AddItemPageState extends State<AddTransaction> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                       contentPadding: const EdgeInsets.fromLTRB(16, 4, 6, 4),
-                      leading: Container(
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: NetworkImage(
-                                  _selectedItem!.image,
-                                ),
-                                fit: BoxFit.cover),
-                            borderRadius: BorderRadius.circular(4)),
-                        width: 48,
-                        height: 48,
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: CachedNetworkImage(
+                          imageUrl: _selectedItem!.image,
+                          placeholder: (context, url) => Container(
+                              alignment: Alignment.center,
+                              color: Colors.grey.shade100,
+                              child: const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ))),
+                          errorWidget: (context, url, error) =>
+                              Image.asset('assets/images/stock.png'),
+                          width: 48.0,
+                          height: 48.0,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       title: Text(_selectedItem!.name),
-                      subtitle:
-                          Text(formatDate(DateTime.now().toIso8601String())),
+                      subtitle: Text('${_selectedItem!.count} items'),
                       trailing: IconButton(
                         icon: const Icon(
                           Icons.close,
@@ -156,6 +216,7 @@ class _AddItemPageState extends State<AddTransaction> {
                 const SizedBox(height: 16.0),
                 TextField(
                   controller: _countController,
+                  autofocus: !_isFieldEnabled,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Item count',
@@ -171,7 +232,9 @@ class _AddItemPageState extends State<AddTransaction> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16))),
                     onPressed: _isSaveButtonEnabled && !_isSaving
-                        ? _saveTransaction
+                        ? () async {
+                            _saveTransaction();
+                          }
                         : null,
                     child: _isSaving
                         ? const Center(

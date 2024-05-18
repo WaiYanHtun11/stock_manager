@@ -1,29 +1,27 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
-import 'package:stock_manager/screens/operation/stock_detail.dart';
+import 'package:stock_manager/screens/operation/add_transaction.dart';
+import 'package:stock_manager/utils/format_date.dart';
 
-class StaffStockCard extends StatelessWidget {
+class OutofStockCard extends StatelessWidget {
+  const OutofStockCard({super.key, required this.item});
   final Item item;
-  const StaffStockCard({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        elevation: 12,
+        elevation: 10,
         surfaceTintColor: Colors.white,
         child: ListTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          onTap: () {
+          onTap: () async {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => StockItemDetail(
+                    builder: (context) => AddTransaction(
+                          status: 'refill',
                           item: item,
                         )));
           },
@@ -42,18 +40,18 @@ class StaffStockCard extends StatelessWidget {
                       ))),
               errorWidget: (context, url, error) =>
                   Image.asset('assets/images/stock.png'),
-              width: 56.0,
-              height: 56.0,
+              width: 48.0,
+              height: 48.0,
               fit: BoxFit.cover,
             ),
           ),
           title: Text(item.name),
-          subtitle: Text(
-            '${item.count} items at ${item.location}',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          subtitle: Text(formatDate(item.timeStamp.toString())),
+          trailing: CircleAvatar(
+            backgroundColor: Colors.deepOrangeAccent,
+            foregroundColor: Colors.white,
+            child: Text(item.count.toString()),
           ),
-          trailing: const Icon(Icons.chevron_right),
         ),
       ),
     );

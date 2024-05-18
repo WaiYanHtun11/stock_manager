@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -99,8 +100,19 @@ class _AddNewStockState extends State<EditStock> {
                                 fit: BoxFit.cover,
                               )
                             : _imageUrl != null
-                                ? Image.network(
-                                    _imageUrl!,
+                                ? CachedNetworkImage(
+                                    imageUrl: _imageUrl!,
+                                    placeholder: (context, url) => Container(
+                                        alignment: Alignment.center,
+                                        color: Colors.grey.shade100,
+                                        child: const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3,
+                                            ))),
+                                    errorWidget: (context, url, error) =>
+                                        Image.asset('assets/images/stock.png'),
                                     width: 150,
                                     height: 150,
                                     fit: BoxFit.cover,

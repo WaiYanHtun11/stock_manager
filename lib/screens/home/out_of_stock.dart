@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/models/item.dart';
-import 'package:stock_manager/providers/out_of_stock.dart';
-import 'package:stock_manager/widgets/transaction_card.dart';
+import 'package:stock_manager/providers/out_of_stock_provider.dart';
+import 'package:stock_manager/widgets/out_of_stock_card.dart';
 
 class OutofStockScreen extends StatelessWidget {
   const OutofStockScreen({super.key});
@@ -28,11 +28,11 @@ class OutofStockScreen extends StatelessWidget {
       );
     } else {
       return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         itemCount: outofStocks.length,
         itemBuilder: (context, index) {
           final item = outofStocks[index];
-          return TransactionCard(
-            isRefill: false,
+          return OutofStockCard(
             item: item,
           );
         },

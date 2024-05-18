@@ -12,12 +12,38 @@ class ReportList extends StatefulWidget {
 }
 
 class _ReportListState extends State<ReportList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onScroll() async {
+    if (_scrollController.position.atEdge) {
+      if (_scrollController.position.pixels != 0) {
+        final reportsManager = context.read<ReportsManager>();
+        if (!reportsManager.isLoading &&
+            reportsManager.currentPage < reportsManager.totalPages) {
+          await reportsManager.loadMoreReports();
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Consumer<ReportsManager>(builder: (context, reportsManager, _) {
-        print(reportsManager.reportsList);
-        if (reportsManager.isLoading) {
+        if (reportsManager.isLoading && reportsManager.reportsList.isEmpty) {
           return const Center(
             child: Text('Loading...'),
           );
@@ -27,10 +53,25 @@ class _ReportListState extends State<ReportList> {
             child: Text('No Items Yet'),
           );
         }
-        print(reportsManager.reportsList.length);
+
         return ListView.builder(
-          itemCount: reportsManager.reportsList.length,
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: reportsManager.reportsList.length +
+              (reportsManager.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
+            if (index == reportsManager.reportsList.length) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+              );
+            }
+
             final reportsMap = reportsManager.reportsList[index];
             final date = reportsMap.keys.first;
             final items = reportsMap[date]!;
@@ -56,7 +97,7 @@ class _ReportListState extends State<ReportList> {
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return TransactionCard(
-                      isRefill: item.status == 'sale',
+                      isRefill: item.status != 'sale',
                       item: item,
                     );
                   },

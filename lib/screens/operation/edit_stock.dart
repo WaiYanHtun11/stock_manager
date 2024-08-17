@@ -33,13 +33,11 @@ class _AddNewStockState extends State<EditStock> {
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    setState(() {
-      if (pickedFile != null) {
+    if (pickedFile != null) {
+      setState(() {
         _imageFile = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
+      });
+    }
   }
 
   Future<void> _uploadImage() async {
@@ -69,7 +67,10 @@ class _AddNewStockState extends State<EditStock> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Stock'),
+        title: const Text(
+          'Edit Stock',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -166,7 +167,6 @@ class _AddNewStockState extends State<EditStock> {
                                   await _uploadImage();
                                   String id = widget.stock.id;
                                   if (context.mounted) {
-                                    print('Item saved successfully');
                                     await Provider.of<StocksManager>(context,
                                             listen: false)
                                         .updateStock(Item(
@@ -177,6 +177,7 @@ class _AddNewStockState extends State<EditStock> {
                                             image: _imageUrl ?? '',
                                             location:
                                                 locationController.text.trim(),
+                                            date: widget.stock.date,
                                             timeStamp: DateTime.now()
                                                 .toIso8601String()));
                                   }

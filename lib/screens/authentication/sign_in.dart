@@ -30,11 +30,10 @@ class _SignInScreenState extends State<SignInScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Image.asset('assets/orders.png'),
-              Container(
-                color: Colors.grey.shade300,
+              SizedBox(
                 width: 150,
                 height: 150,
+                child: Image.asset('assets/images/logo.png'),
               ),
               const SizedBox(height: 40),
               _buildSignInForm(context, authManager),

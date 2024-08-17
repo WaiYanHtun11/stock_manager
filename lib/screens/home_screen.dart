@@ -9,6 +9,7 @@ import 'package:stock_manager/screens/home/report_list.dart';
 import 'package:stock_manager/screens/home/stock_list.dart';
 import 'package:stock_manager/screens/home/out_of_stock.dart';
 import 'package:stock_manager/services/database_service.dart';
+import 'package:stock_manager/widgets/loading_dialog.dart';
 
 import '../icons/nav_icons_icons.dart';
 
@@ -69,7 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return _initialized
         ? Scaffold(
             appBar: AppBar(
-              title: const Text('Stock Manager'),
+              title: const Text(
+                'Stock Manager',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              ),
               actions: [
                 Consumer<OutofStockManager>(
                     builder: (context, outofStockManager, _) {
@@ -90,14 +94,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }),
                 IconButton(
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.blueGrey,
-                  ),
-                  onPressed: () {
-                    Provider.of<AuthManager>(context, listen: false).signOut();
-                  },
-                )
+                    icon: const Icon(
+                      Icons.logout,
+                      color: Colors.blueGrey,
+                    ),
+                    onPressed: () async{
+                      await showLoadingDialog(
+                          context,
+                          Provider.of<AuthManager>(context, listen: false)
+                              .signOut());
+                    })
               ],
             ),
             body: screens[currentIndex],

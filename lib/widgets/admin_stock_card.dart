@@ -56,7 +56,9 @@ List<PopupMenuItem<String>> getPopupItems(BuildContext context, Item item) {
 
 class AdminStockCard extends StatelessWidget {
   final Item item;
-  const AdminStockCard({super.key, required this.item});
+  final VoidCallback clearFocus;
+  const AdminStockCard(
+      {super.key, required this.item, required this.clearFocus});
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,7 @@ class AdminStockCard extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
           onTap: () {
+            clearFocus();
             Navigator.push(
                 context,
                 MaterialPageRoute(

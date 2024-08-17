@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAEvW5byrTmW_q1SggNbL7-nRCbPWzeFMs',
-    appId: '1:66744714206:android:0d1185a5355e11eb68134f',
+    appId: '1:66744714206:android:81d1bade6ce160c768134f',
     messagingSenderId: '66744714206',
     projectId: 'stock-manager-4a814',
     storageBucket: 'stock-manager-4a814.appspot.com',
@@ -65,10 +65,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBN5EZfvov75hvbwqIKN5cl4bNi3qKccg8',
-    appId: '1:66744714206:ios:ff2b6b13fecf92ea68134f',
+    appId: '1:66744714206:ios:7f0f0f20323d994268134f',
     messagingSenderId: '66744714206',
     projectId: 'stock-manager-4a814',
     storageBucket: 'stock-manager-4a814.appspot.com',
-    iosBundleId: 'com.llpdevtem.stockManager',
+    iosBundleId: 'com.llpmm.stockManager',
   );
+
 }

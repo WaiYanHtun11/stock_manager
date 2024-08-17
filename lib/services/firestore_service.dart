@@ -53,6 +53,7 @@ class FirestoreService {
             .where('timeStamp', isGreaterThan: isoTimestamp)
             .get();
       }
+      print(snapshot.docs.length);
       if (collection == 'stocks') {
         return snapshot.docs
             .map((doc) => Item.fromStocksFirestore(doc))

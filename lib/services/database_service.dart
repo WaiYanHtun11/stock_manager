@@ -12,7 +12,7 @@ class DatabaseService {
 
     final stocksTimeStamp = prefs.getString('stocks') ?? '';
     final reportsTimeStamp = prefs.getString('reports') ?? '';
-    print(stocksTimeStamp);
+
     // Update the local stocks to sync with firestore
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
     for (Item stock in stocks) {
@@ -41,7 +41,6 @@ class DatabaseService {
     }
 
     prefs.setString('stocks', DateTime.now().toIso8601String());
-    print(stocksTimeStamp);
   }
 
   Future<void> syncReports() async {
@@ -77,7 +76,6 @@ class DatabaseService {
       await _sqfliteService.updateCount('stocks', id, count);
     } catch (e) {
       // Absorb the error
-      print('error occurs in updating count');
     }
   }
 
@@ -122,8 +120,7 @@ class DatabaseService {
     String id = item.id;
     int count = 0;
     int inStock = await _sqfliteService.getCountOfStockById(sid);
-    print('in stock : $inStock');
-    print('difference : $difference');
+
     await _firestoreService.updateItem('transactions', id,
         {'count': item.count, 'timeStamp': DateTime.now().toIso8601String()});
     if (item.status == 'sale') {
@@ -134,7 +131,7 @@ class DatabaseService {
       await updateTransactionCount('refills', id, item.count);
     }
     await updateTransactionCount('reports', id, item.count);
-    print('final count : $count');
+
     await updateStockCount(sid, count);
   }
 
@@ -159,6 +156,10 @@ class DatabaseService {
 
   Future<int> getTotalRowCount(String table) async {
     return await _sqfliteService.getTotalRowCount(table);
+  }
+
+  Future<int> getTotalStocks() async {
+    return await _sqfliteService.getTotalCount();
   }
 
   Future<Item?> getStockById(String id) async {

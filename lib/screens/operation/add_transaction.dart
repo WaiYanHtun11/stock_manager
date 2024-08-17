@@ -22,6 +22,7 @@ class _AddItemPageState extends State<AddTransaction> {
   late Future<List<Item>> _itemsFuture;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _countController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
   bool _showSuggestions = false;
   bool _isFieldEnabled = true;
   bool _isSaveButtonEnabled = false;
@@ -57,15 +58,18 @@ class _AddItemPageState extends State<AddTransaction> {
     _countController.removeListener(_validateInputs);
     _searchController.dispose();
     _countController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
-  void _saveTransaction() async {
+  Future<void> _saveTransaction() async {
     setState(() {
       _isSaving = true;
     });
 
     final itemCount = int.tryParse(_countController.text) ?? 0;
+    final note =
+        _noteController.text.isNotEmpty ? _noteController.text : 'No note';
 
     String id = const Uuid().v1();
     Item item = Item(
@@ -74,8 +78,10 @@ class _AddItemPageState extends State<AddTransaction> {
         name: _selectedItem!.name,
         count: itemCount,
         image: _selectedItem!.image,
+        date: DateTime.now().toIso8601String(),
         timeStamp: DateTime.now().toIso8601String(),
-        status: widget.status);
+        status: widget.status,
+        note: note);
 
     if (_selectedItem != null && itemCount > 0) {
       // Save the transaction
@@ -100,25 +106,13 @@ class _AddItemPageState extends State<AddTransaction> {
             .checkOutofStockAfterUpdate(_selectedItem!);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transaction saved successfully!'),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.fromLTRB(16, 0, 16, 96),
-            ),
-          );
+          await Provider.of<StocksManager>(context, listen: false)
+              .updateTotalStocks();
+        }
+        if (mounted) {
+          Navigator.of(context).pop();
         }
       }
-
-      // Reset the state
-      setState(() {
-        _searchController.clear();
-        _countController.clear();
-        _selectedItem = null;
-        _isFieldEnabled = true;
-        _isSaveButtonEnabled = false;
-        _isSaving = false;
-      });
     } else {
       // Show the snackbar
       if (mounted) {
@@ -126,6 +120,7 @@ class _AddItemPageState extends State<AddTransaction> {
           const SnackBar(
             content: Text('Transaction Failed!'),
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 1),
             margin: EdgeInsets.fromLTRB(16, 0, 16, 96),
           ),
         );
@@ -140,10 +135,13 @@ class _AddItemPageState extends State<AddTransaction> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Transaction'),
+        title: const Text(
+          'Add Transaction',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
         child: Stack(
           children: [
             Column(
@@ -151,7 +149,7 @@ class _AddItemPageState extends State<AddTransaction> {
               children: [
                 if (_selectedItem != null)
                   Card(
-                    margin: const EdgeInsets.only(bottom: 32),
+                    margin: const EdgeInsets.only(bottom: 16),
                     child: ListTile(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
@@ -224,7 +222,17 @@ class _AddItemPageState extends State<AddTransaction> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: _noteController,
+                  decoration: const InputDecoration(
+                      labelText: 'Note',
+                      contentPadding: EdgeInsets.all(16),
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   height: 56,
                   child: ElevatedButton(
@@ -233,7 +241,7 @@ class _AddItemPageState extends State<AddTransaction> {
                             borderRadius: BorderRadius.circular(16))),
                     onPressed: _isSaveButtonEnabled && !_isSaving
                         ? () async {
-                            _saveTransaction();
+                            await _saveTransaction();
                           }
                         : null,
                     child: _isSaving

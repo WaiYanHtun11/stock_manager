@@ -70,12 +70,10 @@ class _ItemCountDialogState extends State<ItemCountDialog> {
               TextButton(
                 onPressed: () async {
                   // Handle the update action here, for example, you can call a function to update the count
-                  print(
-                      'Updated item count: $_newCount - ${widget.item.count}');
 
                   Item updateReport = widget.item;
                   int difference = _newCount - widget.item.count;
-                  print('Difference is : $difference');
+
                   if (widget.item.count != _newCount) {
                     DatabaseService db = DatabaseService();
                     setState(() {

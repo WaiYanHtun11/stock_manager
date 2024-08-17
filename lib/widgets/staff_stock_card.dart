@@ -5,7 +5,9 @@ import 'package:stock_manager/screens/operation/stock_detail.dart';
 
 class StaffStockCard extends StatelessWidget {
   final Item item;
-  const StaffStockCard({super.key, required this.item});
+  final VoidCallback clearFoucs;
+  const StaffStockCard(
+      {super.key, required this.item, required this.clearFoucs});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,7 @@ class StaffStockCard extends StatelessWidget {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           onTap: () {
+            clearFoucs();
             Navigator.push(
                 context,
                 MaterialPageRoute(

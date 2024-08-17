@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/providers/reports_provider.dart';
 import 'package:stock_manager/utils/format_date.dart';
-import 'package:stock_manager/widgets/transaction_card.dart';
+import 'package:stock_manager/widgets/report_card.dart';
 
 class ReportList extends StatefulWidget {
   const ReportList({super.key});
@@ -96,7 +96,7 @@ class _ReportListState extends State<ReportList> {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    return TransactionCard(
+                    return ReportCard(
                       isRefill: item.status != 'sale',
                       item: item,
                     );

@@ -8,6 +8,7 @@ class StocksManager extends ChangeNotifier {
   late int _currentPage;
   late int _totalPages;
   late bool _isLoading;
+  int _totalStock = 0;
 
   StocksManager() {
     _stocks = [];
@@ -21,6 +22,7 @@ class StocksManager extends ChangeNotifier {
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   bool get isLoading => _isLoading;
+  int get totalStock => _totalStock;
 
   Future<void> fetchStocks({int page = 0, int limit = 12}) async {
     if (_isLoading || page > _totalPages) return;
@@ -29,15 +31,18 @@ class StocksManager extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
+      if (page != 0) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
       final stocks = await _databaseService.fetchPaginatedItems(
           'stocks', limit, page * limit);
       _stocks.addAll(stocks);
 
-      print(stocks.length);
-
-      // Assuming you have a method in DatabaseService to get total number of stocks
-      final totalStocks = await _databaseService.getTotalRowCount('stocks');
-      _totalPages = (totalStocks / limit).ceil();
+      // Assuming you have a method in DatabaseService to get total number of stock
+      _totalStock = await _databaseService.getTotalStocks();
+      final total = await _databaseService.getTotalRowCount('stocks');
+      _totalPages = (total / limit).ceil();
 
       _currentPage = page;
       _isLoading = false;
@@ -55,11 +60,18 @@ class StocksManager extends ChangeNotifier {
     }
   }
 
+  Future<void> updateTotalStocks() async {
+    _totalStock = await _databaseService.getTotalStocks();
+    notifyListeners();
+  }
+
   Future<void> addStock(Item item) async {
     // Sync local data with the firestore before adding
     await _databaseService.syncStocks();
     // Add item to the firebase and sqflite
     await _databaseService.addStock(item);
+    // // Get total items in the stock
+    _totalStock = await _databaseService.getTotalStocks();
     // Update the in memory list
     stocks.add(item);
     notifyListeners();
@@ -70,6 +82,8 @@ class StocksManager extends ChangeNotifier {
     await _databaseService.syncStocks();
     // Update item in firebase and sqflite
     await _databaseService.updateStock(item);
+    // Get total items in the stock
+    _totalStock = await _databaseService.getTotalStocks();
     // Update the in memory list
     final index = stocks.indexWhere((stock) => stock.id == item.id);
     if (index != -1) {
@@ -86,6 +100,9 @@ class StocksManager extends ChangeNotifier {
       // Delete item from Firebase and Sqflite
       await _databaseService.deleteStock(item.id);
 
+      // // Get total items in the stock
+      _totalStock = await _databaseService.getTotalStocks();
+
       // Remove item from the in-memory list
       _stocks.removeWhere((stock) => stock.id == item.id);
 
@@ -100,7 +117,6 @@ class StocksManager extends ChangeNotifier {
     final index = stocks.indexWhere((stock) => stock.id == item.id);
     if (index != -1) {
       stocks[index] = item;
-      print('update the memory list of the stock');
     }
     notifyListeners();
   }

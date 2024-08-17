@@ -5,20 +5,24 @@ class Item {
   final String name;
   int count;
   final String image;
+  final String? date;
   final String timeStamp; // Store timeStamp as String
   final String? sid;
   final String? status; // Make status nullable
   final String? location; // Make location nullable
+  final String? note; // Add note as a nullable field
 
   Item({
     required this.id,
     required this.name,
     required this.count,
     required this.image,
+    this.date,
     required this.timeStamp, // Store timeStamp as String
     this.sid,
     this.status, // Include status field
     this.location, // Include location field
+    this.note, // Include note field
   });
 
   // Method to convert Firestore DocumentSnapshot to Item object for stocks
@@ -30,7 +34,9 @@ class Item {
       count: data['count'] ?? 0,
       image: data['image'] ?? '',
       timeStamp: data['timeStamp'] ?? '',
-      location: data['location'], // Retrieve location from Firestore
+      location: data['location'],
+      date: data['date'] ?? '',
+      note: data['note'] ?? 'No note', // Retrieve note from Firestore
     );
   }
 
@@ -42,9 +48,11 @@ class Item {
         name: data['name'] ?? '',
         count: data['count'] ?? 0,
         image: data['image'] ?? '',
+        date: data['date'] ?? '',
         timeStamp: data['timeStamp'] ?? '',
         status: data['status'], // Retrieve status from Firestore
-        sid: data['sid']);
+        sid: data['sid'],
+        note: data['note'] ?? 'No note'); // Retrieve note from Firestore
   }
 
   // Method to convert Item object to a Map for stocks
@@ -55,8 +63,9 @@ class Item {
       'count': count,
       'image': image,
       'timeStamp': timeStamp,
-      // No status field for stocks
+      'date': date,
       'location': location, // Include location field
+      'note': note, // Include note field
     };
   }
 
@@ -67,10 +76,11 @@ class Item {
       'name': name,
       'count': count,
       'image': image,
+      'date': date,
       'timeStamp': timeStamp,
-      // No location field for transactions
       'status': status, // Include status field
-      'sid': sid
+      'sid': sid,
+      'note': note, // Include note field
     };
   }
 
@@ -81,9 +91,11 @@ class Item {
         name: map['name'],
         count: map['count'],
         image: map['image'],
+        date: map['date'],
         timeStamp: map['timeStamp'], // Store timeStamp as String
         status: map['status'],
         location: map['location'],
-        sid: map['sid']);
+        sid: map['sid'],
+        note: map['note']); // Include note field
   }
 }

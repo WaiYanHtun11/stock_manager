@@ -50,7 +50,7 @@ class TransactionCard extends StatelessWidget {
             ),
           ),
           title: Text(item.name),
-          subtitle: Text(formatDate(item.timeStamp.toString())),
+          subtitle: Text(formatDate(item.date.toString())),
           trailing: CircleAvatar(
             backgroundColor: isRefill ? Colors.green : Colors.deepOrangeAccent,
             foregroundColor: Colors.white,

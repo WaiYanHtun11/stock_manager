@@ -37,51 +37,59 @@ class SqfliteService {
   Future<void> _createTables(Database db) async {
     // Create tables if they don't exist
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS stocks(
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        count INTEGER,
-        image TEXT,
-        location TEXT,
-        timeStamp TEXT
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS stocks(
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      count INTEGER,
+      image TEXT,
+      location TEXT,
+      date TEXT,
+      timeStamp TEXT,
+      note TEXT 
+    )
+  ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS sales(
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        count INTEGER,
-        image TEXT,
-        status TEXT,
-        sid TEXT,
-        timeStamp TEXT
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS sales(
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      count INTEGER,
+      image TEXT,
+      status TEXT,
+      sid TEXT,
+      date TEXT,
+      timeStamp TEXT,
+      note TEXT 
+    )
+  ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS refills(
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        count INTEGER,
-        image TEXT,
-        status TEXT,
-        sid TEXT,
-        timeStamp TEXT
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS refills(
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      count INTEGER,
+      image TEXT,
+      status TEXT,
+      sid TEXT,
+      date TEXT,
+      timeStamp TEXT,
+      note TEXT 
+    )
+  ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS reports(
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        count INTEGER,
-        image TEXT,
-        status TEXT,
-        sid TEXT,
-        timeStamp TEXT
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS reports(
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      count INTEGER,
+      image TEXT,
+      status TEXT,
+      sid TEXT,
+      date TEXT,
+      timeStamp TEXT,
+      note TEXT 
+    )
+  ''');
   }
 
   Future<void> insertItem(String table, Item item) async {
@@ -99,8 +107,6 @@ class SqfliteService {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
-
-    print('added data');
   }
 
   Future<List<Item>> getAllItems(String table, {String? searchTerm}) async {
@@ -198,7 +204,7 @@ class SqfliteService {
     final db = await getDatabase();
     // Fetch data with pagination
     final List<Map<String, dynamic>> maps = await db.rawQuery(
-        'SELECT * FROM $table ORDER BY timeStamp DESC LIMIT $limit OFFSET $offset');
+        'SELECT * FROM $table ORDER BY date DESC LIMIT $limit OFFSET $offset');
 
     // Convert List<Map<String, dynamic>> to List<Item>
     return List.generate(maps.length, (i) {
@@ -208,11 +214,23 @@ class SqfliteService {
 
   Future<int> getTotalRowCount(String table) async {
     final db = await getDatabase();
-    // Get the total count of rows in the table
+    // Get final db = await getDatabase(); the total count of rows in the table
     List<Map<String, dynamic>> result =
         await db.rawQuery('SELECT COUNT(*) FROM $table');
     int? count = Sqflite.firstIntValue(result);
     return count ?? 0;
+  }
+
+  Future<int> getTotalCount() async {
+    final db = await getDatabase();
+    // Execute the query to get the sum of the count field
+    final List<Map<String, dynamic>> result =
+        await db.rawQuery('SELECT SUM(count) as total FROM stocks');
+
+    // Get the total from the result
+    int totalCount = result.first['total'] ?? 0;
+
+    return totalCount;
   }
 
   Future<bool> isTableEmpty(String table) async {

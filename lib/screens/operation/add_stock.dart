@@ -33,13 +33,11 @@ class _AddNewStockState extends State<AddNewStock> {
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    setState(() {
-      if (pickedFile != null) {
+    if (pickedFile != null) {
+      setState(() {
         _imageFile = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
+      });
+    }
   }
 
   Future<void> _uploadImage() async {
@@ -60,7 +58,10 @@ class _AddNewStockState extends State<AddNewStock> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Stock'),
+        title: const Text(
+          'Add New Stock',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -123,6 +124,7 @@ class _AddNewStockState extends State<AddNewStock> {
                   InputField(
                       label: 'Location',
                       controller: locationController,
+                      
                       maxLines: 3),
                   Padding(
                     padding:
@@ -152,6 +154,8 @@ class _AddNewStockState extends State<AddNewStock> {
                                           name: nameController.text.trim(),
                                           count: int.parse(itemController.text),
                                           image: _imageUrl ?? '',
+                                          date:
+                                              DateTime.now().toIso8601String(),
                                           location:
                                               locationController.text.trim(),
                                           timeStamp: DateTime.now()

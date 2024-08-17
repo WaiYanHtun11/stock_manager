@@ -12,7 +12,6 @@ class FirebaseStorageService {
       await ref.putFile(imageFile);
       return await ref.getDownloadURL();
     } catch (e) {
-      print('Failed to upload image: $e');
       return null;
     }
   }
@@ -23,7 +22,7 @@ class FirebaseStorageService {
           .refFromURL(imageUrl)
           .delete();
     } catch (e) {
-      print('Failed to delete image: $e');
+      // Abort Error
     }
   }
 
@@ -36,7 +35,6 @@ class FirebaseStorageService {
       final imageName = imageUrl.split('/').last;
       return await uploadImage(newImageFile, imageName);
     } catch (e) {
-      print('Failed to update image: $e');
       return null;
     }
   }

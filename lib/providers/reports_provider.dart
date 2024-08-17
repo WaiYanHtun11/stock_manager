@@ -83,7 +83,7 @@ class ReportsManager extends ChangeNotifier {
 
       for (var report in reports) {
         String dateString =
-            DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
+            DateTime.parse(report.date!).toLocal().toString().split(' ')[0];
 
         bool dateExists = false;
         for (var reportsMap in _reportsList) {
@@ -122,7 +122,7 @@ class ReportsManager extends ChangeNotifier {
 
   void addReport(Item report) {
     String dateString =
-        DateTime.parse(report.timeStamp).toLocal().toString().split(' ')[0];
+        DateTime.parse(report.date!).toLocal().toString().split(' ')[0];
 
     bool dateExists = false;
     for (var reportsMap in _reportsList) {

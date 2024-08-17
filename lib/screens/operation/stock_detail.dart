@@ -15,7 +15,10 @@ class StockItemDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stock Detail'),
+        title: const Text(
+          'Stock Detail',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
         actions: [
           IconButton(
               onPressed: () {

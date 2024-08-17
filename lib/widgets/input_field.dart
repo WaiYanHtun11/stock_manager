@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+
 // ignore: must_be_immutable
 class InputField extends StatelessWidget {
   InputField(
-      {
-        required this.label,
-        required this.controller,
-        this.maxLines,
-        this.type,
-        this.suffixIcon,
-        super.key
-      });
+      {required this.label,
+      required this.controller,
+      this.maxLines,
+      this.type,
+      this.suffixIcon,
+      super.key});
   final String label;
   final String? initValue = '';
   final TextEditingController controller;
@@ -34,6 +33,7 @@ class InputField extends StatelessWidget {
         enableInteractiveSelection: false,
         decoration: InputDecoration(
             labelText: label,
+            alignLabelWithHint: true,
             border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             contentPadding: const EdgeInsets.all(16.0),

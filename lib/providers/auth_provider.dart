@@ -50,8 +50,8 @@ class AuthManager extends ChangeNotifier {
 
   Future<void> signOut() async {
     try {
-      await _auth.signOut();
       await Future.delayed(const Duration(seconds: 2));
+      await _auth.signOut();
       _user = null;
       _role = null; // Clear role on sign out
     } catch (e) {

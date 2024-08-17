@@ -33,7 +33,7 @@ class _ResetPasswordState extends State<ResetPasswordScreen> {
         'Check Your Email',
         "Reset password link was sent to your email, follow the instruction to reset password.",
       );
-      if (mounted) {
+      if (context.mounted) {
         Navigator.pop(context);
       }
     }
@@ -43,7 +43,7 @@ class _ResetPasswordState extends State<ResetPasswordScreen> {
         await authManger.resetPassword(_emailController.text.trim());
       } on FirebaseAuthException catch (e) {
         if (e.code == 'invalid-email') {
-          if (mounted) {
+          if (context.mounted) {
             showAbout(
               context,
               'Invalid Email Address',
@@ -51,7 +51,7 @@ class _ResetPasswordState extends State<ResetPasswordScreen> {
             );
           }
         } else if (e.code == 'user-not-found') {
-          if (mounted) {
+          if (context.mounted) {
             showAbout(
               context,
               'User Not Found',
@@ -59,7 +59,7 @@ class _ResetPasswordState extends State<ResetPasswordScreen> {
             );
           }
         } else {
-          if (mounted) {
+          if (context.mounted) {
             showAbout(
               context,
               'Reset Password Fail',

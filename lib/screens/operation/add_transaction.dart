@@ -237,8 +237,13 @@ class _AddItemPageState extends State<AddTransaction> {
                   height: 56,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16))),
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.deepOrangeAccent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      minimumSize: const Size.fromHeight(48),
+                      padding: const EdgeInsets.all(16),
+                    ),
                     onPressed: _isSaveButtonEnabled && !_isSaving
                         ? () async {
                             await _saveTransaction();

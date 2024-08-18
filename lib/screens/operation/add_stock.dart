@@ -161,14 +161,9 @@ class _AddNewStockState extends State<AddNewStock> {
                                           timeStamp: DateTime.now()
                                               .toIso8601String()));
 
-                                  setState(() {
-                                    _imageFile = null;
-                                    _imageUrl = null;
-                                    nameController.clear();
-                                    itemController.clear();
-                                    locationController.clear();
-                                    _isLoading = false;
-                                  });
+                                 if(context.mounted){
+                                  Navigator.pop(context);
+                                 }
                                 }
                               },
                         child: _isLoading

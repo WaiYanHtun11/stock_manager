@@ -73,7 +73,7 @@ class StocksManager extends ChangeNotifier {
     // // Get total items in the stock
     _totalStock = await _databaseService.getTotalStocks();
     // Update the in memory list
-    stocks.add(item);
+    stocks.insert(0, item);
     notifyListeners();
   }
 

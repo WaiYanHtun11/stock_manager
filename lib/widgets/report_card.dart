@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:stock_manager/models/item.dart';
+import 'package:stock_manager/providers/auth_provider.dart';
 import 'package:stock_manager/utils/format_date.dart';
+import 'package:stock_manager/widgets/update_dialog.dart';
 
 class ReportCard extends StatelessWidget {
   const ReportCard({super.key, required this.isRefill, required this.item});
@@ -10,6 +13,8 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authManager = Provider.of<AuthManager>(context, listen: false);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
@@ -63,18 +68,37 @@ class ReportCard extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(isRefill ? 'Item Sold' : 'Item Refilled')
+                          Text(formatDate(item.date!)),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      Text('Count : ${item.count}'),
-                      const SizedBox(height: 8),
-                      Text('Date : ${formatDate(item.date!)}'),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Item : ${item.count} ${isRefill ? 'refilled' : 'sold'}',
+                      ),
                       const SizedBox(height: 8),
                       Text('Time : ${formatTime(item.date!)}'),
                       const SizedBox(height: 8),
                       if (item.note != null && item.note!.isNotEmpty)
                         Text('Note : ${item.note}'),
+                      if (authManager.role == 'admin')
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8))),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext context) {
+                                    return ItemCountDialog(item: item);
+                                  },
+                                );
+                              },
+                              child: const Text('Edit')),
+                        ),
                     ],
                   ),
                 );

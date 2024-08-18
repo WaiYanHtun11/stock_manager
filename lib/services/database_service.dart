@@ -121,8 +121,11 @@ class DatabaseService {
     int count = 0;
     int inStock = await _sqfliteService.getCountOfStockById(sid);
 
-    await _firestoreService.updateItem('transactions', id,
-        {'count': item.count, 'timeStamp': DateTime.now().toIso8601String()});
+    await _firestoreService.updateItem('transactions', id, {
+      'count': item.count,
+      'note': item.note,
+      'timeStamp': DateTime.now().toIso8601String()
+    });
     if (item.status == 'sale') {
       count = inStock - difference;
       await updateTransactionCount('sales', id, item.count);

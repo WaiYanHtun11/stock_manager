@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/utils/format_date.dart';
-import 'package:stock_manager/widgets/update_count_dialog.dart';
+import 'package:stock_manager/widgets/update_dialog.dart';
 
 class TransactionCard extends StatelessWidget {
   const TransactionCard(

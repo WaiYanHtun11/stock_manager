@@ -19,7 +19,6 @@ class CustomAlertDialog extends StatelessWidget {
           fontSize: 20.0,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
-          fontFamily: 'Inter',
         ),
       ),
       shape: RoundedRectangleBorder(
@@ -37,7 +36,6 @@ class CustomAlertDialog extends StatelessWidget {
               fontWeight: FontWeight.w400,
               color: Colors.black45,
               height: 1.5,
-              fontFamily: 'Inter',
             ),
           ),
           const SizedBox(height: 20),

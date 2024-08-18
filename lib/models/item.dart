@@ -10,7 +10,7 @@ class Item {
   final String? sid;
   final String? status; // Make status nullable
   final String? location; // Make location nullable
-  final String? note; // Add note as a nullable field
+  String? note; // Add note as a nullable field
 
   Item({
     required this.id,

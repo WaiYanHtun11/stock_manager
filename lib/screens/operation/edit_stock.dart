@@ -14,10 +14,10 @@ class EditStock extends StatefulWidget {
   const EditStock({super.key, required this.stock});
 
   @override
-  State<EditStock> createState() => _AddNewStockState();
+  State<EditStock> createState() => _EditStockState();
 }
 
-class _AddNewStockState extends State<EditStock> {
+class _EditStockState extends State<EditStock> {
   final formKey = GlobalKey<FormState>();
 
   final TextEditingController nameController = TextEditingController();
@@ -196,7 +196,10 @@ class _AddNewStockState extends State<EditStock> {
                                 }
 
                                 if (context.mounted && hasChanged) {
-                                  Navigator.pop(context);
+                                  await Provider.of<StocksManager>(context,
+                                          listen: false)
+                                      .updateTotalStocks();
+                                  if (context.mounted) Navigator.pop(context);
                                 }
                               },
                         child: _isLoading

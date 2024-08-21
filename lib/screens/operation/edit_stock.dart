@@ -46,8 +46,14 @@ class _EditStockState extends State<EditStock> {
     }
 
     final imageName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    // Delete the old image if exists
+    if (_imageUrl != null && _imageUrl!.isNotEmpty) {
+      await FirebaseStorageService.deleteImage(_imageUrl!);
+    }
+
     final imageUrl =
-        await FirebaseStorageService.updateImage(_imageFile!, imageName);
+        await FirebaseStorageService.uploadImage(_imageFile!, imageName);
 
     setState(() {
       _imageUrl = imageUrl;
@@ -153,6 +159,7 @@ class _EditStockState extends State<EditStock> {
                                 bool hasChanged = false;
                                 if (nameController.text.trim() !=
                                         widget.stock.name ||
+                                    _imageFile != null ||
                                     int.parse(itemController.text) !=
                                         widget.stock.count ||
                                     _imageUrl != widget.stock.image ||

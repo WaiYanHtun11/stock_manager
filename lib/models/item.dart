@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Item {
   final String id;
-  final String name;
+   String name;
   int count;
   final String image;
   final String? date;
-  final String timeStamp; // Store timeStamp as String
+  String timeStamp; // Store timeStamp as String
   final String? sid;
   final String? status; // Make status nullable
   final String? location; // Make location nullable

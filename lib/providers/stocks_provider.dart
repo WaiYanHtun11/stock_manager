@@ -37,6 +37,7 @@ class StocksManager extends ChangeNotifier {
 
       final stocks = await _databaseService.fetchPaginatedItems(
           'stocks', limit, page * limit);
+
       _stocks.addAll(stocks);
 
       // Assuming you have a method in DatabaseService to get total number of stock
@@ -97,8 +98,12 @@ class StocksManager extends ChangeNotifier {
       // Sync local data with Firestore before deleting
       await _databaseService.syncStocks();
 
+      item.name = '';
+      item.count = 0;
+      item.timeStamp = DateTime.now().toIso8601String();
+
       // Delete item from Firebase and Sqflite
-      await _databaseService.deleteStock(item.id);
+      await _databaseService.updateStock(item);
 
       // // Get total items in the stock
       _totalStock = await _databaseService.getTotalStocks();

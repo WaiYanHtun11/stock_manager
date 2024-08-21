@@ -50,7 +50,7 @@ class _ReportListState extends State<ReportList> {
         }
         if (reportsManager.reportsList.isEmpty) {
           return const Center(
-            child: Text('No Items Yet'),
+            child: Text('No History Yet'),
           );
         }
 

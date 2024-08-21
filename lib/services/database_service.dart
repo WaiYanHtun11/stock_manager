@@ -16,7 +16,11 @@ class DatabaseService {
     // Update the local stocks to sync with firestore
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
     for (Item stock in stocks) {
-      _sqfliteService.insertItem('stocks', stock);
+        if (stock.name.isEmpty) {
+        _sqfliteService.deleteItem('stocks', stock.id);
+      } else {
+        _sqfliteService.insertItem('stocks', stock);
+      }
     }
     prefs.setString('stocks', DateTime.now().toIso8601String());
 
@@ -37,7 +41,12 @@ class DatabaseService {
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
 
     for (Item stock in stocks) {
-      _sqfliteService.insertItem('stocks', stock);
+      if (stock.name.isEmpty) {
+        print(stock.id);
+        _sqfliteService.deleteItem('stocks', stock.id);
+      } else {
+        _sqfliteService.insertItem('stocks', stock);
+      }
     }
 
     prefs.setString('stocks', DateTime.now().toIso8601String());

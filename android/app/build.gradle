@@ -7,6 +7,11 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
+dependencies {
+    // Other dependencies
+
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
@@ -26,7 +31,12 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+//dependencies {
+//    compile 'com.android.support:multidex:1.0.1'
+//}
+
 android {
+
     namespace = "com.example.stock_manager"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion

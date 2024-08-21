@@ -9,6 +9,10 @@ import 'package:stock_manager/providers/stocks_provider.dart';
 import 'package:stock_manager/services/firebase_storage_service.dart';
 import 'package:stock_manager/widgets/input_field.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+
 
 class AddNewStock extends StatefulWidget {
   const AddNewStock({super.key});
@@ -40,14 +44,42 @@ class _AddNewStockState extends State<AddNewStock> {
     }
   }
 
+  Future<File> compressImage(File imageFile) async {
+    // Read the image file as bytes
+    final imageBytes = await imageFile.readAsBytes();
+
+    // Decode the image
+    final image = img.decodeImage(imageBytes);
+
+    if (image == null) {
+      throw Exception('Failed to decode image');
+    }
+
+    // Compress the image to 60% quality
+    final compressedImageBytes = img.encodeJpg(image, quality: 60);
+
+    // Get temporary directory to store the compressed image
+    final tempDir = await getTemporaryDirectory();
+    final compressedImagePath = path.join(tempDir.path, 'compressed_image.jpg');
+
+    // Write the compressed image bytes to a new file
+    final compressedImageFile = File(compressedImagePath)
+      ..writeAsBytesSync(compressedImageBytes);
+
+    return compressedImageFile;
+  }
+
   Future<void> _uploadImage() async {
     if (_imageFile == null) {
       return;
     }
 
+    try{
+      _imageFile = await compressImage(_imageFile!);
+    }catch(_){}
+
     final imageName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final imageUrl =
-        await FirebaseStorageService.uploadImage(_imageFile!, imageName);
+    final imageUrl = await FirebaseStorageService.uploadImage(_imageFile!, imageName);
 
     setState(() {
       _imageUrl = imageUrl;

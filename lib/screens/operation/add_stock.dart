@@ -55,6 +55,9 @@ class _AddNewStockState extends State<AddNewStock> {
       throw Exception('Failed to decode image');
     }
 
+    // Resize the image
+    final resizedImage = img.copyResize(image, width: 800);
+    
     // Compress the image to 60% quality
     final compressedImageBytes = img.encodeJpg(image, quality: 60);
 

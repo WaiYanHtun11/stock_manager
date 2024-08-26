@@ -59,7 +59,7 @@ class _AddNewStockState extends State<AddNewStock> {
     final resizedImage = img.copyResize(image, width: 800);
     
     // Compress the image to 60% quality
-    final compressedImageBytes = img.encodeJpg(image, quality: 60);
+    final compressedImageBytes = img.encodeJpg(resizedImage, quality: 60);
 
     // Get temporary directory to store the compressed image
     final tempDir = await getTemporaryDirectory();
@@ -96,6 +96,7 @@ class _AddNewStockState extends State<AddNewStock> {
         title: const Text(
           'Add New Stock',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          
         ),
       ),
       body: SingleChildScrollView(

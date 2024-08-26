@@ -4,7 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:stock_manager/models/edit_history.dart';
 import 'package:stock_manager/models/item.dart';
+import 'package:stock_manager/providers/auth_provider.dart';
+import 'package:stock_manager/providers/edit_provider.dart';
 import 'package:stock_manager/providers/stocks_provider.dart';
 import 'package:stock_manager/services/firebase_storage_service.dart';
 import 'package:stock_manager/widgets/input_field.dart';
@@ -157,11 +160,13 @@ class _EditStockState extends State<EditStock> {
                             : () async {
                                 // Check if any field has changed
                                 bool hasChanged = false;
+                                bool stockChanged =
+                                    int.parse(itemController.text) !=
+                                        widget.stock.count;
                                 if (nameController.text.trim() !=
                                         widget.stock.name ||
                                     _imageFile != null ||
-                                    int.parse(itemController.text) !=
-                                        widget.stock.count ||
+                                    stockChanged ||
                                     _imageUrl != widget.stock.image ||
                                     locationController.text.trim() !=
                                         widget.stock.location) {
@@ -186,6 +191,24 @@ class _EditStockState extends State<EditStock> {
                                                 locationController.text.trim(),
                                             date: widget.stock.date,
                                             timeStamp: DateTime.now()
+                                                .toIso8601String()));
+                                  }
+                                  if (stockChanged && context.mounted) {
+                                    final name = Provider.of<AuthManager>(
+                                            context,
+                                            listen: false)
+                                        .name;
+                                    await Provider.of<EditHistoryProvider>(
+                                            context,
+                                            listen: false)
+                                        .addEditHistory(EditHistory(
+                                            itemName: widget.stock.name,
+                                            userName: name!,
+                                            image: widget.stock.image,
+                                            fromCount: widget.stock.count,
+                                            toCount: int.parse(
+                                                itemController.text.trim()),
+                                            time: DateTime.now()
                                                 .toIso8601String()));
                                   }
                                 } else {

@@ -19,3 +19,14 @@ String formatTime(String dateString) {
 
   return formattedTime;
 }
+
+String formatDateTime(String isoString) {
+  // Parse the ISO 8601 string to a DateTime object
+  DateTime dateTime = DateTime.parse(isoString);
+
+  // Define the format you want
+  final DateFormat formatter = DateFormat("MMM d, yyyy - h:mm a");
+
+  // Format the DateTime object
+  return formatter.format(dateTime);
+}

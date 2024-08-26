@@ -1,22 +1,49 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:stock_manager/models/item.dart';
-import 'package:stock_manager/services/database_service.dart';
 
 class OutofStockManager extends ChangeNotifier {
-  final DatabaseService _databaseService = DatabaseService();
+  final CollectionReference _firestore =
+      FirebaseFirestore.instance.collection('stocks');
   final List<Item> _outofStocks = [];
+  bool _isLoading = false;
+  DocumentSnapshot? _lastDocument;
 
   List<Item> get outofStocks => _outofStocks;
+  bool get isLoading => _isLoading;
 
   OutofStockManager() {
     syncOutofStockData();
   }
 
   // Sync all local and firestore database
-  Future<void> syncOutofStockData() async {
-    final List<Item> outofStocks =
-        await _databaseService.fetchItemsLessThan(10);
-    _outofStocks.addAll(outofStocks);
+  Future<void> syncOutofStockData({limit = 12}) async {
+    if (_isLoading || (_lastDocument == null && _outofStocks.isNotEmpty)) {
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    Query query =
+        _firestore.orderBy('count').where('count', isLessThan: limit).limit(12);
+    if (_lastDocument != null) {
+      await Future.delayed(const Duration(seconds: 1));
+      query = query.startAfterDocument(_lastDocument!);
+    }
+
+    QuerySnapshot querySnapshot = await query.get();
+    if (querySnapshot.docs.isNotEmpty) {
+      _lastDocument = querySnapshot.docs.last;
+      _outofStocks.addAll(querySnapshot.docs.map((doc) {
+        return Item.fromStocksFirestore(doc);
+      }).toList());
+    } else {
+      // No more documents to fetch
+      _lastDocument = null;
+    }
+
+    _isLoading = false;
     notifyListeners();
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/providers/auth_provider.dart';
 import 'package:stock_manager/providers/out_of_stock_provider.dart';
+import 'package:stock_manager/screens/home/edit_history_screen.dart';
 import 'package:stock_manager/screens/home/refill_list.dart';
 import 'package:stock_manager/screens/home/remove_list.dart';
 import 'package:stock_manager/screens/home/report_list.dart';
@@ -75,6 +76,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.history),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const EditHistoryList()));
+                  },
+                ),
                 Consumer<OutofStockManager>(
                     builder: (context, outofStockManager, _) {
                   return IconButton(
@@ -98,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icons.logout,
                       color: Colors.blueGrey,
                     ),
-                    onPressed: () async{
+                    onPressed: () async {
                       await showLoadingDialog(
                           context,
                           Provider.of<AuthManager>(context, listen: false)

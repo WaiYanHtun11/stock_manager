@@ -7,6 +7,7 @@ class AuthManager extends ChangeNotifier {
   final FirebaseFirestore _firestore =
       FirebaseFirestore.instance; // Firestore instance
   User? _user;
+  String? _name;
   bool _isLoading = false;
   String? _role; // New local variable for role
 
@@ -28,6 +29,7 @@ class AuthManager extends ChangeNotifier {
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get role => _role; // Getter for role
+  String? get name => _name;
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     try {
@@ -79,6 +81,7 @@ class AuthManager extends ChangeNotifier {
           await _firestore.collection('users').doc(uid).get();
       if (userSnapshot.exists) {
         // If user document exists, get role field
+        _name = userSnapshot['name'];
         _role = userSnapshot['role'];
         notifyListeners(); // Notify listeners after role is fetched
       }

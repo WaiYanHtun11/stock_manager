@@ -16,7 +16,7 @@ class DatabaseService {
     // Update the local stocks to sync with firestore
     final stocks = await _firestoreService.getItems('stocks', stocksTimeStamp);
     for (Item stock in stocks) {
-        if (stock.name.isEmpty) {
+      if (stock.name.isEmpty) {
         _sqfliteService.deleteItem('stocks', stock.id);
       } else {
         _sqfliteService.insertItem('stocks', stock);
@@ -42,7 +42,6 @@ class DatabaseService {
 
     for (Item stock in stocks) {
       if (stock.name.isEmpty) {
-        print(stock.id);
         _sqfliteService.deleteItem('stocks', stock.id);
       } else {
         _sqfliteService.insertItem('stocks', stock);
@@ -152,8 +151,8 @@ class DatabaseService {
     return await _firestoreService.getItems(collection, isoTimestamp);
   }
 
-  Future<List<Item>> fetchItemsLessThan(int i) async {
-    return await _firestoreService.getItemsLessThan('stocks', 12);
+  Future<List<Item>> fetchItemsLessThan(int count) async {
+    return await _firestoreService.getItemsLessThan('stocks', count);
   }
 
   Future<List<Item>> fetchFromLocalDB(String table,

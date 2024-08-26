@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:stock_manager/firebase_options.dart';
 import 'package:stock_manager/providers/auth_provider.dart';
 import 'package:stock_manager/providers/daily_provider.dart';
+import 'package:stock_manager/providers/edit_provider.dart';
 import 'package:stock_manager/providers/out_of_stock_provider.dart';
 import 'package:stock_manager/providers/reports_provider.dart';
 import 'package:stock_manager/providers/stocks_provider.dart';
@@ -29,6 +30,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReportsManager()),
         ChangeNotifierProvider(create: (_) => DailyManager()),
         ChangeNotifierProvider(create: (_) => OutofStockManager()),
+        ChangeNotifierProvider(
+          create: (_) => EditHistoryProvider(),
+          lazy: true,
+        ),
       ],
       child: MaterialApp(
         title: 'Stock Manager',

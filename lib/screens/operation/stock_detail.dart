@@ -19,6 +19,7 @@ class StockItemDetail extends StatelessWidget {
           'Stock Detail',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
               onPressed: () {
@@ -39,7 +40,7 @@ class StockItemDetail extends StatelessWidget {
             Container(
               alignment: Alignment.center,
               width: double.infinity,
-              height: 150.0,
+              height: 320.0,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: CachedNetworkImage(
@@ -48,14 +49,14 @@ class StockItemDetail extends StatelessWidget {
                       alignment: Alignment.center,
                       color: Colors.grey.shade100,
                       child: const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 24,
+                          height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
                           ))),
                   errorWidget: (context, url, error) =>
                       Image.asset('assets/images/stock.png'),
-                  width: 150,
+                  width: 320,
                   fit: BoxFit.cover,
                 ),
               ),

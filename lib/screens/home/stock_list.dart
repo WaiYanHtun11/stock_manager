@@ -214,47 +214,61 @@ class _StockListState extends State<StockList> {
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(4.0),
                       ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: CachedNetworkImage(
-                                imageUrl: items[index].image,
-                                placeholder: (context, url) => Container(
-                                    alignment: Alignment.center,
-                                    color: Colors.grey.shade100,
-                                    child: const SizedBox(
-                                        width: 12,
-                                        height: 12,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ))),
-                                errorWidget: (context, url, error) =>
-                                    Image.asset('assets/images/stock.png'),
-                                width: 48.0,
-                                height: 48.0,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            title: Text(items[index].name),
-                            subtitle: Text('Count: ${items[index].count}'),
-                            onTap: () {
-                              //Navigate to detail screen
-                              _focusNode.unfocus();
-                              _searchController.clear();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      StockItemDetail(item: items[index]),
-                                ),
+                      child: SizedBox(
+                        height:
+                            320, // Set a fixed height to make the ListView scrollable
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: items.length +
+                              1, // Add 1 to include the end indicator
+                          itemBuilder: (context, index) {
+                            if (index == items.length) {
+                              // The end indicator
+                              return const Padding(
+                                padding: EdgeInsets.only(top: 8.0, bottom: 24),
+                                child: Center(child: Text('End of results')),
                               );
-                            },
-                          );
-                        },
+                            } else {
+                              // Regular list item
+                              return ListTile(
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: CachedNetworkImage(
+                                    imageUrl: items[index].image,
+                                    placeholder: (context, url) => Container(
+                                        alignment: Alignment.center,
+                                        color: Colors.grey.shade100,
+                                        child: const SizedBox(
+                                            width: 12,
+                                            height: 12,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ))),
+                                    errorWidget: (context, url, error) =>
+                                        Image.asset('assets/images/stock.png'),
+                                    width: 48.0,
+                                    height: 48.0,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                title: Text(items[index].name),
+                                subtitle: Text('Count: ${items[index].count}'),
+                                onTap: () {
+                                  // Navigate to detail screen
+                                  _focusNode.unfocus();
+                                  _searchController.clear();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          StockItemDetail(item: items[index]),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        ),
                       ),
                     );
                   }
@@ -263,7 +277,8 @@ class _StockListState extends State<StockList> {
             ),
         ],
       ),
-      floatingActionButton: authManager.role != 'admin'
+      floatingActionButton: authManager.role != 'admin' ||
+              _searchController.text.isNotEmpty
           ? null
           : FloatingActionButton(
               backgroundColor: Colors.deepOrangeAccent,

@@ -1,18 +1,14 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_manager/models/item.dart';
 import 'package:stock_manager/providers/stocks_provider.dart';
 import 'package:stock_manager/services/firebase_storage_service.dart';
+import 'package:stock_manager/utils/image_compressor.dart';
 import 'package:stock_manager/widgets/input_field.dart';
 import 'package:uuid/uuid.dart';
-import 'package:image/image.dart' as img;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-
 
 class AddNewStock extends StatefulWidget {
   const AddNewStock({super.key});
@@ -44,49 +40,30 @@ class _AddNewStockState extends State<AddNewStock> {
     }
   }
 
-  Future<File> compressImage(File imageFile) async {
-    // Read the image file as bytes
-    final imageBytes = await imageFile.readAsBytes();
-
-    // Decode the image
-    final image = img.decodeImage(imageBytes);
-
-    if (image == null) {
-      throw Exception('Failed to decode image');
-    }
-
-    // Resize the image
-    final resizedImage = img.copyResize(image, width: 800);
-    
-    // Compress the image to 60% quality
-    final compressedImageBytes = img.encodeJpg(resizedImage, quality: 60);
-
-    // Get temporary directory to store the compressed image
-    final tempDir = await getTemporaryDirectory();
-    final compressedImagePath = path.join(tempDir.path, 'compressed_image.jpg');
-
-    // Write the compressed image bytes to a new file
-    final compressedImageFile = File(compressedImagePath)
-      ..writeAsBytesSync(compressedImageBytes);
-
-    return compressedImageFile;
-  }
-
   Future<void> _uploadImage() async {
     if (_imageFile == null) {
       return;
     }
 
-    try{
+    try {
       _imageFile = await compressImage(_imageFile!);
-    }catch(_){}
+    } catch (e) {
+      //
+    }
 
-    final imageName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final imageUrl = await FirebaseStorageService.uploadImage(_imageFile!, imageName);
+    try {
+      final imageName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final imageUrl =
+          await FirebaseStorageService.uploadImage(_imageFile!, imageName);
 
-    setState(() {
-      _imageUrl = imageUrl;
-    });
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        setState(() {
+          _imageUrl = imageUrl;
+        });
+      }
+    } catch (e) {
+      //
+    }
   }
 
   @override
@@ -96,7 +73,6 @@ class _AddNewStockState extends State<AddNewStock> {
         title: const Text(
           'Add New Stock',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          
         ),
       ),
       body: SingleChildScrollView(
@@ -123,26 +99,15 @@ class _AddNewStockState extends State<AddNewStock> {
                         child: _imageFile != null
                             ? Image.file(
                                 _imageFile!,
-                                width: 150,
-                                height: 150,
+                                width: 160,
+                                height: 160,
                                 fit: BoxFit.cover,
                               )
-                            : _imageUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: _imageUrl!,
-                                    placeholder: (context, url) => Container(
-                                        alignment: Alignment.center,
-                                        color: Colors.grey.shade100,
-                                        child: const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 3,
-                                            ))),
-                                    errorWidget: (context, url, error) =>
-                                        Image.asset('assets/images/stock.png'),
-                                    width: 150,
-                                    height: 150,
+                            : (_imageUrl != null && _imageUrl!.isNotEmpty)
+                                ? Image.network(
+                                    _imageUrl!,
+                                    width: 160,
+                                    height: 160,
                                     fit: BoxFit.cover,
                                   )
                                 : const Icon(
@@ -160,60 +125,59 @@ class _AddNewStockState extends State<AddNewStock> {
                   InputField(
                       label: 'Location',
                       controller: locationController,
-                      
                       maxLines: 3),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 4, vertical: 24),
                     child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.deepOrangeAccent,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          minimumSize: const Size.fromHeight(60),
-                          padding: const EdgeInsets.all(16),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.deepOrangeAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                await _uploadImage();
-                                String id = const Uuid().v4();
-                                if (context.mounted) {
-                                  Provider.of<StocksManager>(context,
-                                          listen: false)
-                                      .addStock(Item(
-                                          id: id,
-                                          name: nameController.text.trim(),
-                                          count: int.parse(itemController.text),
-                                          image: _imageUrl ?? '',
-                                          date:
-                                              DateTime.now().toIso8601String(),
-                                          location:
-                                              locationController.text.trim(),
-                                          timeStamp: DateTime.now()
-                                              .toIso8601String()));
+                        minimumSize: const Size.fromHeight(60),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              await _uploadImage();
+                              String id = const Uuid().v4();
+                              if (context.mounted) {
+                                Provider.of<StocksManager>(context,
+                                        listen: false)
+                                    .addStock(Item(
+                                  id: id,
+                                  name: nameController.text.trim(),
+                                  count: int.parse(itemController.text),
+                                  image: _imageUrl ?? '',
+                                  date: DateTime.now().toIso8601String(),
+                                  location: locationController.text.trim(),
+                                  timeStamp: DateTime.now().toIso8601String(),
+                                ));
 
-                                 if(context.mounted){
+                                if (context.mounted) {
                                   Navigator.pop(context);
-                                 }
                                 }
-                              },
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(),
-                              )
-                            : const Text(
-                                'Save',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
-                              )),
-                  )
+                              }
+                            },
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(),
+                            )
+                          : const Text(
+                              'Save',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                            ),
+                    ),
+                  ),
                 ],
               ),
             ),

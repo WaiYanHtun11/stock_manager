@@ -10,6 +10,7 @@ import 'package:stock_manager/providers/auth_provider.dart';
 import 'package:stock_manager/providers/edit_provider.dart';
 import 'package:stock_manager/providers/stocks_provider.dart';
 import 'package:stock_manager/services/firebase_storage_service.dart';
+import 'package:stock_manager/utils/image_compressor.dart';
 import 'package:stock_manager/widgets/input_field.dart';
 
 class EditStock extends StatefulWidget {
@@ -47,6 +48,10 @@ class _EditStockState extends State<EditStock> {
     if (_imageFile == null) {
       return;
     }
+
+    try {
+      _imageFile = await compressImage(_imageFile!);
+    } catch (_) {}
 
     final imageName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
 

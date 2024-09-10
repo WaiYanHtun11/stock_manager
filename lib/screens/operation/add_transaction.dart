@@ -140,184 +140,205 @@ class _AddItemPageState extends State<AddTransaction> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_selectedItem != null)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      contentPadding: const EdgeInsets.fromLTRB(16, 4, 6, 4),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: CachedNetworkImage(
-                          imageUrl: _selectedItem!.image,
-                          placeholder: (context, url) => Container(
-                              alignment: Alignment.center,
-                              color: Colors.grey.shade100,
-                              child: const SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ))),
-                          errorWidget: (context, url, error) =>
-                              Image.asset('assets/images/stock.png'),
-                          width: 48.0,
-                          height: 48.0,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      title: Text(_selectedItem!.name),
-                      subtitle: Text('${_selectedItem!.count} items'),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isFieldEnabled = true;
-                            _searchController.clear();
-                            _selectedItem = null;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                TextFormField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (_isFieldEnabled) {
-                      setState(() {
-                        _showSuggestions = value.isNotEmpty;
-                        _itemsFuture =
-                            db.getAllItems('stocks', searchTerm: value);
-                      });
-                    }
-                  },
-                  enabled: _isFieldEnabled,
-                  decoration: const InputDecoration(
-                    hintText: 'Search for items...',
-                    hintStyle:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
-                    contentPadding: EdgeInsets.all(16),
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _countController,
-                  autofocus: !_isFieldEnabled,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Item count',
-                    contentPadding: EdgeInsets.all(16),
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _noteController,
-                  decoration: const InputDecoration(
-                      labelText: 'Note',
-                      contentPadding: EdgeInsets.all(16),
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.deepOrangeAccent,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      minimumSize: const Size.fromHeight(48),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    onPressed: _isSaveButtonEnabled && !_isSaving
-                        ? () async {
-                            await _saveTransaction();
-                          }
-                        : null,
-                    child: _isSaving
-                        ? const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context)
+            .unfocus(), // Dismiss the keyboard when tapping outside
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (_selectedItem != null)
+                            Card(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              child: ListTile(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                contentPadding:
+                                    const EdgeInsets.fromLTRB(16, 4, 6, 4),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: CachedNetworkImage(
+                                    imageUrl: _selectedItem!.image,
+                                    placeholder: (context, url) => Container(
+                                        alignment: Alignment.center,
+                                        color: Colors.grey.shade100,
+                                        child: const SizedBox(
+                                            width: 12,
+                                            height: 12,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ))),
+                                    errorWidget: (context, url, error) =>
+                                        Image.asset('assets/images/stock.png'),
+                                    width: 48.0,
+                                    height: 48.0,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                title: Text(_selectedItem!.name),
+                                subtitle: Text('${_selectedItem!.count} items'),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isFieldEnabled = true;
+                                      _searchController.clear();
+                                      _selectedItem = null;
+                                    });
+                                  },
+                                ),
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Save',
-                            style: TextStyle(fontSize: 17),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-            if (_showSuggestions)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 72, // Adjust this value based on your needs
-                child: FutureBuilder<List<Item>>(
-                  future: _itemsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: const Center(child: Text('No such item')),
-                      );
-                    } else {
-                      final items = snapshot.data!;
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(items[index].name),
-                              subtitle: Text('Count: ${items[index].count}'),
-                              onTap: () {
-                                // Handle item selection
-                                _searchController.text = items[index].name;
+                          TextFormField(
+                            controller: _searchController,
+                            onChanged: (value) {
+                              if (_isFieldEnabled) {
                                 setState(() {
-                                  _selectedItem = items[index];
-                                  _showSuggestions = false;
-                                  _isFieldEnabled = false;
+                                  _showSuggestions = value.isNotEmpty;
+                                  _itemsFuture = db.getAllItems('stocks',
+                                      searchTerm: value);
                                 });
+                              }
+                            },
+                            enabled: _isFieldEnabled,
+                            decoration: const InputDecoration(
+                              hintText: 'Search for items...',
+                              hintStyle: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.normal),
+                              contentPadding: EdgeInsets.all(16),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextField(
+                            controller: _countController,
+                            autofocus: !_isFieldEnabled,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Item count',
+                              contentPadding: EdgeInsets.all(16),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextField(
+                            controller: _noteController,
+                            decoration: const InputDecoration(
+                                labelText: 'Note',
+                                contentPadding: EdgeInsets.all(16),
+                                border: OutlineInputBorder(),
+                                alignLabelWithHint: true),
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.deepOrangeAccent,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                                minimumSize: const Size.fromHeight(48),
+                                padding: const EdgeInsets.all(16),
+                              ),
+                              onPressed: _isSaveButtonEnabled && !_isSaving
+                                  ? () async {
+                                      await _saveTransaction();
+                                    }
+                                  : null,
+                              child: _isSaving
+                                  ? const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Save',
+                                      style: TextStyle(fontSize: 17),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_showSuggestions)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: 72,
+                          child: SizedBox(
+                            height: 300, // Adjust height as necessary
+                            child: FutureBuilder<List<Item>>(
+                              future: _itemsFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasError) {
+                                  return Center(
+                                      child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return Container(
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: const Center(
+                                        child: Text('No such item')),
+                                  );
+                                } else {
+                                  final items = snapshot.data!;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: ListView.builder(
+                                      itemCount: items.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                          title: Text(items[index].name),
+                                          subtitle: Text(
+                                              'Count: ${items[index].count}'),
+                                          onTap: () {
+                                            _searchController.text =
+                                                items[index].name;
+                                            setState(() {
+                                              _selectedItem = items[index];
+                                              _showSuggestions = false;
+                                              _isFieldEnabled = false;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  );
+                                }
                               },
-                            );
-                          },
-                        ),
-                      );
-                    }
-                  },
+                            ),
+                          ),
+                        )
+                    ],
+                  ),
                 ),
               ),
-          ],
+            );
+          },
         ),
       ),
     );

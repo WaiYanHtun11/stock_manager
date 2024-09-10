@@ -215,12 +215,10 @@ class _StockListState extends State<StockList> {
                         borderRadius: BorderRadius.circular(4.0),
                       ),
                       child: SizedBox(
-                        height:
-                            320, // Set a fixed height to make the ListView scrollable
+                        height: 320,
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: items.length +
-                              1, // Add 1 to include the end indicator
+                          itemCount: items.length + 1,
                           itemBuilder: (context, index) {
                             if (index == items.length) {
                               // The end indicator
